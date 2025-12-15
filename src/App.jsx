@@ -1,21 +1,33 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
-import "./App.css";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import AppShell from "./components/layout/AppShell";
+import Home from "./pages/Home";
 
 function App() {
-  const [count, setCount] = useState(0);
-
   return (
-    <>
-      <div>
-        <h1 className="text-5xl font-extrabold text-center my-8 tracking-wide">
-          <span className="bg-linear-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent">
-            My E-Store
-          </span>
-        </h1>
-      </div>
-    </>
+    <BrowserRouter>
+      <Routes>
+        {/* Parent Route: AppShell (Layout) */}
+        <Route path="/" element={<AppShell />}>
+          {/* Index Route: Home Page */}
+          <Route index element={<Home />} />
+
+          {/* Future Routes Placholders */}
+          {/* <Route path="login" element={<Login />} /> */}
+          {/* <Route path="register" element={<Register />} /> */}
+          {/* <Route path="products" element={<ProductList />} /> */}
+
+          {/* 404 Route */}
+          <Route
+            path="*"
+            element={
+              <div className="text-center mt-20 text-2xl">
+                404: Page Not Found
+              </div>
+            }
+          />
+        </Route>
+      </Routes>
+    </BrowserRouter>
   );
 }
 
