@@ -18,11 +18,14 @@ const Hero = () => {
           Shop Now
         </Link>
       </div>
-      <div className="md:w-1/2 flex justify-center">
-        {/* Placeholder for Hero Image */}
-        <div className="w-64 h-64 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-          <span className="text-2xl font-bold opacity-80">Hero Image</span>
-        </div>
+
+      {/* Hero Image  */}
+      <div className="md:w-1/2 flex justify-center z-10">
+        <img
+          src="https://images.unsplash.com/photo-1483985988355-763728e1935b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
+          alt="Shopping Hero"
+          className="w-full max-w-md rounded-lg shadow-2xl transform md:rotate-3 hover:rotate-0 transition duration-500"
+        />
       </div>
     </div>
   );
