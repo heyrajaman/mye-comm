@@ -4,6 +4,7 @@ import { getAllProducts, setFilters } from "../store/slices/productSlice";
 import ProductFilters from "../components/products/ProductFilters";
 import ProductCard from "../components/common/ProductCard";
 import { FaFilter } from "react-icons/fa";
+import { dummyProducts } from "../data/dummyData";
 
 const Shop = () => {
   const dispatch = useDispatch();
@@ -21,67 +22,20 @@ const Shop = () => {
     dispatch(setFilters({ sort: e.target.value }));
   };
 
-  // Dummy data for when API is unavailable (similar to Home page)
-  const dummyProducts = [
-    {
-      id: 1,
-      name: "Wireless Headphones",
-      price: 5999,
-      category: "Electronics",
-      image:
-        "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-    },
-    {
-      id: 2,
-      name: "Smart Watch",
-      price: 12999,
-      category: "Electronics",
-      image:
-        "https://images.unsplash.com/photo-1523275335684-37898b6baf30?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-    },
-    {
-      id: 3,
-      name: "Running Shoes",
-      price: 8999,
-      category: "Fashion",
-      image:
-        "https://images.unsplash.com/photo-1542291026-7eec264c27ff?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-    },
-    {
-      id: 4,
-      name: "Leather Bag",
-      price: 14999,
-      category: "Fashion",
-      image:
-        "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-    },
-    {
-      id: 5,
-      name: "Digital Camera",
-      price: 49999,
-      category: "Electronics",
-      image:
-        "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-    },
-    {
-      id: 6,
-      name: "Denim Jacket",
-      price: 7999,
-      category: "Fashion",
-      image:
-        "https://images.unsplash.com/photo-1576995853123-5a10305d93c0?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-    },
-  ];
-
   // Logic to filter dummy data if backend is missing (for demonstration)
   const displayItems = (items.length > 0 ? items : dummyProducts)
-    .filter((item) => !filters.category || item.category === filters.category)
     .filter((item) => {
-      // Apply price range filter
-      if (filters.minPrice !== null && item.price < filters.minPrice)
+      // 1. Filter by Category
+      if (filters.category && item.category !== filters.category) return false;
+
+      // 2. Filter by Min Price
+      if (filters.minPrice && item.price < parseFloat(filters.minPrice))
         return false;
-      if (filters.maxPrice !== null && item.price > filters.maxPrice)
+
+      // 3. Filter by Max Price
+      if (filters.maxPrice && item.price > parseFloat(filters.maxPrice))
         return false;
+
       return true;
     })
     .sort((a, b) => {
@@ -100,14 +54,11 @@ const Shop = () => {
       </div>
 
       <div className="flex flex-col md:flex-row gap-8">
-        {/* Sidebar - Filters */}
         <aside className="w-full md:w-1/4 hidden md:block">
           <ProductFilters />
         </aside>
 
-        {/* Main Content */}
         <div className="w-full md:w-3/4">
-          {/* Top Bar - Sorting & Count */}
           <div className="flex justify-between items-center mb-6 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
             <p className="text-gray-600">
               Showing{" "}
@@ -132,7 +83,6 @@ const Shop = () => {
             </div>
           </div>
 
-          {/* Product Grid */}
           {loading ? (
             <div className="text-center py-20">Loading products...</div>
           ) : (

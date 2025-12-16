@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState } from "react"; // Import useState
 import { useDispatch, useSelector } from "react-redux";
 import { setFilters } from "../../store/slices/productSlice";
 
@@ -12,25 +12,23 @@ const categories = [
 
 const ProductFilters = () => {
   const dispatch = useDispatch();
-  const activeCategory = useSelector(
-    (state) => state.products.filters.category
-  );
+  const {
+    category: activeCategory,
+    minPrice,
+    maxPrice,
+  } = useSelector((state) => state.products.filters);
 
-  const [minPrice, setMinPrice] = useState("");
-  const [maxPrice, setMaxPrice] = useState("");
+  // Local state for price inputs
+  const [localMin, setLocalMin] = useState(minPrice);
+  const [localMax, setLocalMax] = useState(maxPrice);
 
   const handleCategoryChange = (category) => {
-    const newCategory = activeCategory === category ? "" : category; // Toggle
+    const newCategory = activeCategory === category ? "" : category;
     dispatch(setFilters({ category: newCategory }));
   };
 
-  const handlePriceFilter = () => {
-    dispatch(
-      setFilters({
-        minPrice: minPrice ? Number(minPrice) : null,
-        maxPrice: maxPrice ? Number(maxPrice) : null,
-      })
-    );
+  const applyPriceFilter = () => {
+    dispatch(setFilters({ minPrice: localMin, maxPrice: localMax }));
   };
 
   return (
@@ -66,22 +64,22 @@ const ProductFilters = () => {
           <input
             type="number"
             placeholder="Min"
-            value={minPrice}
-            onChange={(e) => setMinPrice(e.target.value)}
-            className="w-20 px-2 py-1 border rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+            value={localMin}
+            onChange={(e) => setLocalMin(e.target.value)}
+            className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-500"
           />
           <span className="text-gray-400">-</span>
           <input
             type="number"
             placeholder="Max"
-            value={maxPrice}
-            onChange={(e) => setMaxPrice(e.target.value)}
-            className="w-20 px-2 py-1 border rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+            value={localMax}
+            onChange={(e) => setLocalMax(e.target.value)}
+            className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-500"
           />
         </div>
         <button
-          onClick={handlePriceFilter}
-          className="mt-3 w-full bg-blue-600 text-white text-xs py-2 rounded hover:bg-blue-700 transition"
+          onClick={applyPriceFilter}
+          className="mt-3 w-full bg-blue-600 text-white text-sm py-2 rounded hover:bg-blue-700 transition"
         >
           Apply Price
         </button>
