@@ -35,6 +35,8 @@ const productSlice = createSlice({
       // Store active filters in Redux (optional, but good for persistence)
       category: "",
       sort: "default",
+      minPrice: null,
+      maxPrice: null,
     },
   },
   reducers: {
@@ -42,7 +44,12 @@ const productSlice = createSlice({
       state.filters = { ...state.filters, ...action.payload };
     },
     clearFilters: (state) => {
-      state.filters = { category: "", sort: "default" };
+      state.filters = {
+        category: "",
+        sort: "default",
+        minPrice: null,
+        maxPrice: null,
+      };
     },
   },
   extraReducers: (builder) => {
