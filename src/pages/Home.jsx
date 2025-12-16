@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { getAllProducts } from "../store/slices/productSlice";
+import { getFeaturedProducts } from "../store/slices/productSlice";
 import Hero from "../components/home/Hero";
 import FeaturedCategories from "../components/home/FeaturedCategories";
 import ProductCard from "../components/common/ProductCard";
@@ -12,7 +12,7 @@ const Home = () => {
 
   useEffect(() => {
     // Fetch products when component mounts
-    dispatch(getAllProducts());
+    dispatch(getFeaturedProducts());
   }, [dispatch]);
 
   const displayProducts =
