@@ -76,6 +76,14 @@ const Shop = () => {
   // Logic to filter dummy data if backend is missing (for demonstration)
   const displayItems = (items.length > 0 ? items : dummyProducts)
     .filter((item) => !filters.category || item.category === filters.category)
+    .filter((item) => {
+      // Apply price range filter
+      if (filters.minPrice !== null && item.price < filters.minPrice)
+        return false;
+      if (filters.maxPrice !== null && item.price > filters.maxPrice)
+        return false;
+      return true;
+    })
     .sort((a, b) => {
       if (filters.sort === "price_low") return a.price - b.price;
       if (filters.sort === "price_high") return b.price - a.price;

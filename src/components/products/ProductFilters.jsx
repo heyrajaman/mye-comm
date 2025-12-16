@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setFilters } from "../../store/slices/productSlice";
 
@@ -15,9 +16,21 @@ const ProductFilters = () => {
     (state) => state.products.filters.category
   );
 
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
+
   const handleCategoryChange = (category) => {
     const newCategory = activeCategory === category ? "" : category; // Toggle
     dispatch(setFilters({ category: newCategory }));
+  };
+
+  const handlePriceFilter = () => {
+    dispatch(
+      setFilters({
+        minPrice: minPrice ? Number(minPrice) : null,
+        maxPrice: maxPrice ? Number(maxPrice) : null,
+      })
+    );
   };
 
   return (
@@ -53,16 +66,23 @@ const ProductFilters = () => {
           <input
             type="number"
             placeholder="Min"
-            className="w-20 px-2 py-1 border rounded text-sm"
+            value={minPrice}
+            onChange={(e) => setMinPrice(e.target.value)}
+            className="w-20 px-2 py-1 border rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
           />
           <span className="text-gray-400">-</span>
           <input
             type="number"
             placeholder="Max"
-            className="w-20 px-2 py-1 border rounded text-sm"
+            value={maxPrice}
+            onChange={(e) => setMaxPrice(e.target.value)}
+            className="w-20 px-2 py-1 border rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
           />
         </div>
-        <button className="mt-3 w-full bg-gray-100 text-gray-700 text-xs py-2 rounded hover:bg-gray-200">
+        <button
+          onClick={handlePriceFilter}
+          className="mt-3 w-full bg-blue-600 text-white text-xs py-2 rounded hover:bg-blue-700 transition"
+        >
           Apply Price
         </button>
       </div>
