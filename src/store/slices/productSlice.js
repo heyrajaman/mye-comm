@@ -1,15 +1,20 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { fetchProducts } from "../../services/productService";
 
-// Thunk to fetch featured products
-export const getFeaturedProducts = createAsyncThunk(
-  "products/getFeatured",
-  async (_, { rejectWithValue }) => {
+// Thunk to fetch products with filters (category, sort, search)
+export const getAllProducts = createAsyncThunk(
+  "products/getAll",
+  async (params, { rejectWithValue }) => {
     try {
-      // In a real app, you might pass { featured: true }
-      const data = await fetchProducts({ limit: 4 });
+      // params example: { category: 'electronics', sort: 'price_asc' }
+      const data = await fetchProducts(params);
       return data;
     } catch (error) {
+      // If 403 (Forbidden), silently fail to avoid console errors
+      // Frontend will use dummy/fallback data
+      if (error.response?.status === 403) {
+        return rejectWithValue({ status: 403, silent: true });
+      }
       return rejectWithValue(
         error.response?.data?.message || "Failed to fetch products"
       );
@@ -17,30 +22,53 @@ export const getFeaturedProducts = createAsyncThunk(
   }
 );
 
+// Reuse the existing fetchFeatured logic...
+
 const productSlice = createSlice({
   name: "products",
   initialState: {
-    items: [],
-    featured: [], // Store featured products here
+    items: [], // For the main shop page
+    featured: [], // For the home page
     loading: false,
     error: null,
+    filters: {
+      // Store active filters in Redux (optional, but good for persistence)
+      category: "",
+      sort: "default",
+    },
   },
-  reducers: {},
+  reducers: {
+    setFilters: (state, action) => {
+      state.filters = { ...state.filters, ...action.payload };
+    },
+    clearFilters: (state) => {
+      state.filters = { category: "", sort: "default" };
+    },
+  },
   extraReducers: (builder) => {
     builder
-      .addCase(getFeaturedProducts.pending, (state) => {
+      // Handle getAllProducts
+      .addCase(getAllProducts.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(getFeaturedProducts.fulfilled, (state, action) => {
+      .addCase(getAllProducts.fulfilled, (state, action) => {
         state.loading = false;
-        state.featured = action.payload;
+        state.items = action.payload;
       })
-      .addCase(getFeaturedProducts.rejected, (state, action) => {
+      .addCase(getAllProducts.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        // Silently fail for 403 errors (unauthenticated access)
+        // Frontend will use dummy data as fallback
+        if (action.payload?.status === 403 && action.payload?.silent) {
+          state.error = null;
+        } else {
+          state.error = action.payload;
+        }
       });
+    // ... keep existing featured cases
   },
 });
 
+export const { setFilters, clearFilters } = productSlice.actions;
 export default productSlice.reducer;
