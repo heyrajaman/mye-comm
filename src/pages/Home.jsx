@@ -4,6 +4,7 @@ import { getAllProducts } from "../store/slices/productSlice";
 import Hero from "../components/home/Hero";
 import FeaturedCategories from "../components/home/FeaturedCategories";
 import ProductCard from "../components/common/ProductCard";
+import { dummyProducts } from "../data/dummyData";
 
 const Home = () => {
   const dispatch = useDispatch();
@@ -15,42 +16,43 @@ const Home = () => {
   }, [dispatch]);
 
   // Dummy data for display if API fails (since backend might not be running)
-  const dummyProducts = [
-    {
-      id: 1,
-      name: "Wireless Headphones",
-      price: 5999,
-      category: "Electronics",
-      image:
-        "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-    },
-    {
-      id: 2,
-      name: "Smart Watch",
-      price: 1299,
-      category: "Wearables",
-      image:
-        "https://images.unsplash.com/photo-1523275335684-37898b6baf30?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-    },
-    {
-      id: 3,
-      name: "Running Shoes",
-      price: 899,
-      category: "Fashion",
-      image:
-        "https://images.unsplash.com/photo-1542291026-7eec264c27ff?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-    },
-    {
-      id: 4,
-      name: "Gaming Mouse",
-      price: 499,
-      category: "Electronics",
-      image:
-        "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-    },
-  ];
+  // const dummyProducts = [
+  //   {
+  //     id: 1,
+  //     name: "Wireless Headphones",
+  //     price: 5999,
+  //     category: "Electronics",
+  //     image:
+  //       "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+  //   },
+  //   {
+  //     id: 2,
+  //     name: "Smart Watch",
+  //     price: 1299,
+  //     category: "Wearables",
+  //     image:
+  //       "https://images.unsplash.com/photo-1523275335684-37898b6baf30?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+  //   },
+  //   {
+  //     id: 3,
+  //     name: "Running Shoes",
+  //     price: 899,
+  //     category: "Fashion",
+  //     image:
+  //       "https://images.unsplash.com/photo-1542291026-7eec264c27ff?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+  //   },
+  //   {
+  //     id: 4,
+  //     name: "Gaming Mouse",
+  //     price: 499,
+  //     category: "Electronics",
+  //     image:
+  //       "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+  //   },
+  // ];
 
-  const displayProducts = featured.length > 0 ? featured : dummyProducts;
+  const displayProducts =
+    featured.length > 0 ? featured : dummyProducts.slice(0, 4);
 
   return (
     <div className="pb-10">

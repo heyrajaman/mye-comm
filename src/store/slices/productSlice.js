@@ -27,16 +27,15 @@ export const getAllProducts = createAsyncThunk(
 const productSlice = createSlice({
   name: "products",
   initialState: {
-    items: [], // For the main shop page
-    featured: [], // For the home page
+    items: [],
+    featured: [],
     loading: false,
     error: null,
     filters: {
-      // Store active filters in Redux (optional, but good for persistence)
       category: "",
       sort: "default",
-      minPrice: null,
-      maxPrice: null,
+      minPrice: "", // New field
+      maxPrice: "", // New field
     },
   },
   reducers: {
@@ -47,14 +46,13 @@ const productSlice = createSlice({
       state.filters = {
         category: "",
         sort: "default",
-        minPrice: null,
-        maxPrice: null,
+        minPrice: "",
+        maxPrice: "",
       };
     },
   },
   extraReducers: (builder) => {
     builder
-      // Handle getAllProducts
       .addCase(getAllProducts.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -65,15 +63,9 @@ const productSlice = createSlice({
       })
       .addCase(getAllProducts.rejected, (state, action) => {
         state.loading = false;
-        // Silently fail for 403 errors (unauthenticated access)
-        // Frontend will use dummy data as fallback
-        if (action.payload?.status === 403 && action.payload?.silent) {
-          state.error = null;
-        } else {
-          state.error = action.payload;
-        }
+        state.error = action.payload;
       });
-    // ... keep existing featured cases
+    // (Keep existing featured cases...)
   },
 });
 
