@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { getAllProducts, setFilters } from "../store/slices/productSlice";
+import { getAllProducts } from "../store/thunks/productThunks";
+import { setFilters } from "../store/slices/filterSlice"; // Updated Import
 import ProductFilters from "../components/products/ProductFilters";
 import ProductCard from "../components/common/ProductCard";
 import { FaFilter } from "react-icons/fa";
@@ -8,9 +9,8 @@ import { dummyProducts } from "../data/dummyData";
 
 const Shop = () => {
   const dispatch = useDispatch();
-  const { items, loading, error, filters } = useSelector(
-    (state) => state.products
-  );
+  const { items, loading } = useSelector((state) => state.products);
+  const filters = useSelector((state) => state.filters);
 
   // Fetch products whenever filters change
   useEffect(() => {

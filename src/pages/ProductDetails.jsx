@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { getProduct, clearCurrentProduct } from "../store/slices/productSlice";
+import { clearCurrentProduct } from "../store/slices/productSlice";
+import { getProduct } from "../store/thunks/productThunks"; // Updated Import
 import { dummyProducts } from "../data/dummyData"; // Fallback data
 import { FaShoppingCart, FaArrowLeft, FaStar } from "react-icons/fa";
 
@@ -11,7 +12,7 @@ const ProductDetails = () => {
   const { currentProduct, loading, error } = useSelector(
     (state) => state.products
   );
-  const [quantity, setQuantity] = useState(0);
+  const [quantity, setQuantity] = useState(1);
 
   useEffect(() => {
     dispatch(getProduct(id));

@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { getFeaturedProducts } from "../store/slices/productSlice";
+import { getFeaturedProducts } from "../store/thunks/productThunks";
 import Hero from "../components/home/Hero";
 import FeaturedCategories from "../components/home/FeaturedCategories";
 import ProductCard from "../components/common/ProductCard";

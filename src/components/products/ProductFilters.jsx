@@ -1,6 +1,6 @@
 import { useState } from "react"; // Import useState
 import { useDispatch, useSelector } from "react-redux";
-import { setFilters } from "../../store/slices/productSlice";
+import { setFilters } from "../../store/slices/filterSlice";
 
 const categories = [
   "Electronics",
@@ -16,7 +16,7 @@ const ProductFilters = () => {
     category: activeCategory,
     minPrice,
     maxPrice,
-  } = useSelector((state) => state.products.filters);
+  } = useSelector((state) => state.filters);
 
   // Local state for price inputs
   const [localMin, setLocalMin] = useState(minPrice);
