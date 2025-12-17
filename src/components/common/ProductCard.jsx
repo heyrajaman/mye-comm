@@ -10,9 +10,9 @@ const ProductCard = ({ product }) => {
       >
         <div className="h-48 bg-gray-100 flex items-center justify-center relative">
           {/* Placeholder for Image */}
-          {product.image ? (
+          {product.imageUrl ? (
             <img
-              src={product.image}
+              src={product.imageUrl}
               alt={product.name}
               className="h-full w-full object-cover"
             />
@@ -28,7 +28,9 @@ const ProductCard = ({ product }) => {
             {product.name}
           </h3>
         </Link>
-        <p className="text-sm text-gray-500 mb-2">{product.category}</p>
+        <p className="text-sm text-gray-500 mb-2">
+          {product.Category?.name || product.category?.name || "Uncategorized"}
+        </p>
 
         <div className="mt-auto flex items-center justify-between">
           <span className="text-xl font-bold text-blue-600">

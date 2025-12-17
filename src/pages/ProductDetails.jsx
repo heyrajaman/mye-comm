@@ -58,7 +58,7 @@ const ProductDetails = () => {
           {/* Product Image */}
           <div className="p-8 bg-gray-50 flex items-center justify-center">
             <img
-              src={product.image}
+              src={product.imageUrl}
               alt={product.name}
               className="max-h-96 w-full object-contain hover:scale-105 transition duration-300"
             />
@@ -68,7 +68,7 @@ const ProductDetails = () => {
           <div className="p-8 flex flex-col justify-center">
             <div className="mb-2">
               <span className="bg-blue-100 text-blue-800 text-xs px-3 py-1 rounded-full uppercase tracking-wide font-semibold">
-                {product.category}
+                {product.Category?.name || product.category?.name || "General"}
               </span>
             </div>
 
@@ -95,47 +95,61 @@ const ProductDetails = () => {
               <span className="text-3xl font-bold text-blue-600">
                 ₹{product.price}
               </span>
-              <span className="ml-4 text-green-600 text-sm font-medium bg-green-50 px-2 py-1 rounded">
-                In Stock
-              </span>
+              {product.stock > 0 ? (
+                <span className="ml-4 text-green-600 text-sm font-medium bg-green-50 px-2 py-1 rounded">
+                  In Stock ({product.stock} available)
+                </span>
+              ) : (
+                <span className="ml-4 text-red-600 text-sm font-medium bg-red-50 px-2 py-1 rounded">
+                  Out of Stock
+                </span>
+              )}
             </div>
 
             <div className="border-t border-gray-200 pt-6">
-              <div className="flex items-center space-x-4 mb-4">
-                <label className="text-gray-700 font-medium">Quantity:</label>
-                <div className="flex items-center border border-gray-300 rounded-lg">
-                  <button
-                    className="px-3 py-1 hover:bg-gray-100 border-r"
-                    onClick={() => setQuantity((q) => Math.max(0, q - 1))}
-                  >
-                    -
-                  </button>
-                  <span className="px-4 font-medium">{quantity}</span>
-                  <button
-                    className="px-3 py-1 hover:bg-gray-100 border-l"
-                    onClick={() => setQuantity((q) => q + 1)}
-                  >
-                    +
-                  </button>
+              {product.stock > 0 && (
+                <div className="flex items-center space-x-4 mb-4">
+                  <label className="text-gray-700 font-medium">Quantity:</label>
+                  <div className="flex items-center border border-gray-300 rounded-lg">
+                    <button
+                      className="px-3 py-1 hover:bg-gray-100 border-r"
+                      onClick={() => setQuantity((q) => Math.max(0, q - 1))}
+                    >
+                      -
+                    </button>
+                    <span className="px-4 font-medium">{quantity}</span>
+                    <button
+                      className="px-3 py-1 hover:bg-gray-100 border-l"
+                      // Optional: Limit max quantity to available stock
+                      onClick={() =>
+                        setQuantity((q) => Math.min(product.stock, q + 1))
+                      }
+                    >
+                      +
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
 
               <div className="flex gap-4">
                 <button
                   onClick={handleAddToCart}
-                  disabled={quantity === 0}
+                  // Disable if 0 qty OR out of stock
+                  disabled={quantity === 0 || product.stock === 0}
                   className={`flex-1 py-3 rounded-lg font-bold shadow-md transition flex items-center justify-center space-x-2 ${
-                    quantity === 0
+                    quantity === 0 || product.stock === 0
                       ? "bg-gray-300 text-gray-500 cursor-not-allowed shadow-none"
                       : "bg-blue-600 text-white hover:bg-blue-700 hover:shadow-lg"
                   }`}
                 >
                   <FaShoppingCart />
-                  <span>Add to Cart</span>
-                </button>
-                {/* Wishlist Button Placeholder */}
-                <button className="px-4 py-3 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 transition">
-                  Save
+                  <span>
+                    {product.stock === 0
+                      ? "Out of Stock"
+                      : quantity === 0
+                      ? "Select Quantity"
+                      : "Add to Cart"}
+                  </span>
                 </button>
               </div>
             </div>
