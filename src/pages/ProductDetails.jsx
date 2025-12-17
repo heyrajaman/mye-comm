@@ -1,17 +1,22 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { clearCurrentProduct } from "../store/slices/productSlice";
 import { getProduct } from "../store/thunks/productThunks"; // Updated Import
 import { dummyProducts } from "../data/dummyData"; // Fallback data
 import { FaShoppingCart, FaArrowLeft, FaStar } from "react-icons/fa";
+import { addItemToCart, getCartItems } from "../store/thunks/cartThunks"; // Import thunk
 
 const ProductDetails = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { currentProduct, loading, error } = useSelector(
     (state) => state.products
   );
+
+  const { isAuthenticated } = useSelector((state) => state.auth);
+
   const [quantity, setQuantity] = useState(1);
 
   useEffect(() => {
@@ -38,9 +43,20 @@ const ProductDetails = () => {
       <div className="text-center py-20 text-red-500">Product not found.</div>
     );
 
-  const handleAddToCart = () => {
-    // We will implement the actual Cart Logic in the next module
-    alert(`Added ${quantity} of ${product.name} to cart!`);
+  const handleAddToCart = async () => {
+    if (!isAuthenticated) {
+      alert("Please login to add items to cart");
+      navigate("/login");
+      return;
+    }
+
+    if (quantity > 0) {
+      // Dispatch the action
+      await dispatch(addItemToCart({ productId: product.id, quantity }));
+      // Refresh cart to update the cart count
+      await dispatch(getCartItems());
+      alert(`${product.name} added to cart!`);
+    }
   };
 
   return (

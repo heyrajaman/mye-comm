@@ -1,9 +1,23 @@
 import { Link } from "react-router-dom";
 import { FaShoppingCart, FaUser, FaSearch, FaBars } from "react-icons/fa";
 import { useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { getCartItems } from "../../store/thunks/cartThunks";
+import { useEffect } from "react";
 
 const Header = () => {
+  const dispatch = useDispatch();
+  const { items } = useSelector((state) => state.cart);
+  const { isAuthenticated } = useSelector((state) => state.auth);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      dispatch(getCartItems());
+    }
+  }, [dispatch, isAuthenticated]);
+
+  const cartCount = items.reduce((acc, item) => acc + item.quantity, 0);
 
   return (
     <header className="bg-white shadow-md sticky top-0 z-50">
@@ -36,9 +50,11 @@ const Header = () => {
               className="relative text-gray-700 hover:text-blue-600 transition"
             >
               <FaShoppingCart size={22} />
-              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
-                0
-              </span>
+              {cartCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                  {cartCount}
+                </span>
+              )}
             </Link>
             <Link
               to="/login"

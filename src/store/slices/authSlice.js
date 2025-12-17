@@ -7,9 +7,19 @@ const getTokenFromStorage = () => {
 };
 
 const initialState = {
-  user: null,
-  token: getTokenFromStorage(),
-  isAuthenticated: !!getTokenFromStorage(),
+  // user: null,
+  // token: getTokenFromStorage(),
+  // isAuthenticated: !!getTokenFromStorage(),
+
+  // 2. ADD THIS "DUMMY USER" STATE
+  user: {
+    id: 1,
+    name: "Test User",
+    phone: "9999999999",
+  },
+  token: "fake-jwt-token", // Any string works here
+  isAuthenticated: true, // This makes the app think you are logged in
+
   loading: false,
   error: null,
 };
