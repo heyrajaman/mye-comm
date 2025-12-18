@@ -99,7 +99,8 @@ const Cart = () => {
                     {item.Product?.name || "Unknown Product"}
                   </Link>
                   <p className="text-gray-500 text-sm mt-1">
-                    {item.Product?.Category?.name}
+                    {item.Product?.category?.name ||
+                      item.Product?.Category?.name}
                   </p>
                   <p className="font-bold text-blue-600 mt-2">
                     ₹{item.Product?.price}
