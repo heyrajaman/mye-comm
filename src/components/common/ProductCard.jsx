@@ -1,7 +1,27 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { FaShoppingCart } from "react-icons/fa";
+import { useDispatch, useSelector } from "react-redux";
+import { addItemToCart } from "../../store/thunks/cartThunks";
 
 const ProductCard = ({ product }) => {
+  // 2. INITIALIZE HOOKS
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { isAuthenticated } = useSelector((state) => state.auth);
+
+  // 3. ADD THIS HANDLER FUNCTION
+  const handleAddToCart = (e) => {
+    e.preventDefault(); // Prevents clicking the card link
+
+    if (!isAuthenticated) {
+      alert("Please login to add items to your cart!");
+      navigate("/login");
+      return;
+    }
+
+    dispatch(addItemToCart({ productId: product.id, quantity: 1 }));
+    alert("Item added to cart!");
+  };
   return (
     <div className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden flex flex-col">
       <Link
@@ -36,7 +56,10 @@ const ProductCard = ({ product }) => {
           <span className="text-xl font-bold text-blue-600">
             ₹{product.price}
           </span>
-          <button className="p-2 bg-blue-100 text-blue-600 rounded-full hover:bg-blue-200 transition">
+          <button
+            onClick={handleAddToCart}
+            className="p-2 bg-blue-100 text-blue-600 rounded-full hover:bg-blue-200 transition"
+          >
             <FaShoppingCart size={18} />
           </button>
         </div>
