@@ -23,7 +23,7 @@ const Cart = () => {
   // Calculate Total
   const cartTotal = items.reduce((total, item) => {
     // Safety check for nested Product
-    const price = item.Product?.price || 0;
+    const price = item.price || item.Product?.price || 0;
     return total + price * item.quantity;
   }, 0);
 
@@ -75,17 +75,18 @@ const Cart = () => {
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
             {items.map((item) => (
               <div
-                key={item.id}
+                key={item.cartItemId || item.id}
                 className="p-6 border-b border-gray-100 last:border-0 flex flex-col sm:flex-row items-center gap-4"
               >
                 {/* Image */}
                 <div className="w-24 h-24 flex-shrink-0 bg-gray-50 rounded-md overflow-hidden">
                   <img
                     src={
+                      item.image ||
                       item.Product?.imageUrl ||
                       "https://via.placeholder.com/150"
                     }
-                    alt={item.Product?.name}
+                    alt={item.name || item.Product?.name}
                     className="w-full h-full object-contain"
                   />
                 </div>
@@ -96,14 +97,14 @@ const Cart = () => {
                     to={`/product/${item.productId}`}
                     className="text-lg font-semibold text-gray-800 hover:text-blue-600"
                   >
-                    {item.Product?.name || "Unknown Product"}
+                    {item.name || item.Product?.name || "Unknown Product"}
                   </Link>
-                  <p className="text-gray-500 text-sm mt-1">
+                  {/* <p className="text-gray-500 text-sm mt-1">
                     {item.Product?.category?.name ||
                       item.Product?.Category?.name}
-                  </p>
+                  </p> */}
                   <p className="font-bold text-blue-600 mt-2">
-                    ₹{item.Product?.price}
+                    ₹{item.price || item.Product?.price}
                   </p>
                 </div>
 
@@ -115,7 +116,7 @@ const Cart = () => {
                       onClick={() =>
                         dispatch(
                           updateItemQuantity({
-                            cartItemId: item.id,
+                            cartItemId: item.cartItemId || item.id,
                             quantity: item.quantity - 1,
                           })
                         )
@@ -132,7 +133,7 @@ const Cart = () => {
                       onClick={() =>
                         dispatch(
                           updateItemQuantity({
-                            cartItemId: item.id,
+                            cartItemId: item.cartItemId || item.id,
                             quantity: item.quantity + 1,
                           })
                         )
@@ -143,7 +144,9 @@ const Cart = () => {
                   </div>
 
                   <button
-                    onClick={() => dispatch(removeItem(item.id))}
+                    onClick={() =>
+                      dispatch(removeItem(item.cartItemId || item.id))
+                    }
                     className="text-red-500 text-sm hover:underline flex items-center"
                   >
                     <FaTrash className="mr-1" /> Remove
