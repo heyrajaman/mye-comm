@@ -129,3 +129,19 @@ export const removeFromCart = async (cartItemId) => {
   const response = await api.delete(`/cart/remove/${cartItemId}`);
   return response.data;
 };
+
+// --- CLEAR CART ---
+export const clearCartService = async (userId) => {
+  if (!userId) throw new Error("User ID is required");
+
+  // A. MOCK MODE
+  if (USE_MOCK) {
+    await delay();
+    localStorage.removeItem(`${CART_KEY}_${userId}`);
+    return { success: true };
+  }
+
+  // B. REAL BACKEND MODE
+  const response = await api.delete(`/cart/clear/${userId}`);
+  return response.data;
+};

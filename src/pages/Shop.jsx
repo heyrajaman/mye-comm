@@ -26,7 +26,8 @@ const Shop = () => {
   const displayItems = (items.length > 0 ? items : dummyProducts)
     .filter((item) => {
       // 1. Filter by Category
-      const itemCategory = item.Category?.name || item.category?.name;
+      const itemCategory =
+        item.Category?.name || item.category?.name || item.category;
       if (filters.category && itemCategory !== filters.category) return false;
 
       // 2. Filter by Min Price

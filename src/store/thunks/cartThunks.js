@@ -4,6 +4,7 @@ import {
   addToCart,
   updateCartItem,
   removeFromCart,
+  clearCartService,
 } from "../../services/cartService";
 
 export const getCartItems = createAsyncThunk(
@@ -70,6 +71,25 @@ export const removeItem = createAsyncThunk(
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message || "Failed to remove item"
+      );
+    }
+  }
+);
+
+export const clearCartThunk = createAsyncThunk(
+  "cart/clear",
+  async (_, { rejectWithValue, getState }) => {
+    try {
+      const { auth } = getState();
+      const userId = auth.user?.id;
+
+      if (!userId) return rejectWithValue("User not authenticated");
+
+      await clearCartService(userId);
+      return { success: true };
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to clear cart"
       );
     }
   }
