@@ -7,6 +7,8 @@ import ProtectedRoute from "./components/auth/ProtectedRoute";
 import Shop from "./pages/Shop";
 import ProductDetails from "./pages/ProductDetails";
 import Cart from "./pages/Cart";
+import Checkout from "./pages/Checkout";
+import OrderSuccess from "./pages/OrderSuccess";
 
 function App() {
   return (
@@ -22,6 +24,8 @@ function App() {
           <Route path="cart" element={<Cart />} />
           {/* Example of how to protect future routes */}
           <Route element={<ProtectedRoute />}>
+            <Route path="checkout" element={<Checkout />} />
+            <Route path="order-success" element={<OrderSuccess />} />
             {/* <Route path="profile" element={<Profile />} /> */}
             {/* <Route path="checkout" element={<Checkout />} /> */}
           </Route>

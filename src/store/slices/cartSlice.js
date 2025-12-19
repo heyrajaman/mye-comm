@@ -4,6 +4,7 @@ import {
   addItemToCart,
   updateItemQuantity,
   removeItem,
+  clearCartThunk,
 } from "../thunks/cartThunks";
 
 const cartSlice = createSlice({
@@ -53,7 +54,7 @@ const cartSlice = createSlice({
       // Update Quantity
       .addCase(updateItemQuantity.fulfilled, (state, action) => {
         const item = state.items.find(
-          (i) => i.id === action.payload.cartItemId
+          (i) => (i.cartItemId || i.id) === action.payload.cartItemId
         );
         if (item) {
           item.quantity = action.payload.quantity;
@@ -62,7 +63,14 @@ const cartSlice = createSlice({
 
       // Remove Item
       .addCase(removeItem.fulfilled, (state, action) => {
-        state.items = state.items.filter((item) => item.id !== action.payload);
+        state.items = state.items.filter(
+          (item) => (item.cartItemId || item.id) !== action.payload
+        );
+      })
+
+      // Clear Cart (from thunk)
+      .addCase(clearCartThunk.fulfilled, (state) => {
+        state.items = [];
       });
   },
 });
