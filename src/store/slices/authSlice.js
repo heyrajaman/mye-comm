@@ -5,7 +5,7 @@ import { createSlice } from "@reduxjs/toolkit";
 // ==========================================
 // Set TRUE: Instant Login (Good for UI testing)
 // Set FALSE: Real Login (Required for Production)
-const USE_MOCK_AUTH = true;
+const USE_MOCK_AUTH = false;
 
 // Helper to safely access localStorage
 const getTokenFromStorage = () => {
