@@ -8,7 +8,7 @@ import { useEffect } from "react";
 const Header = () => {
   const dispatch = useDispatch();
   const { items } = useSelector((state) => state.cart);
-  const { isAuthenticated } = useSelector((state) => state.auth);
+  const { isAuthenticated, user } = useSelector((state) => state.auth);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -56,13 +56,27 @@ const Header = () => {
                 </span>
               )}
             </Link>
-            <Link
-              to="/login"
-              className="flex items-center space-x-1 text-gray-700 hover:text-blue-600 font-medium transition"
-            >
-              <FaUser size={20} />
-              <span>Login</span>
-            </Link>
+
+            {/* === 2. DESKTOP LOGIC UPDATED === */}
+            {isAuthenticated ? (
+              <Link
+                to="/profile"
+                className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 font-medium transition"
+              >
+                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
+                  <FaUser size={14} />
+                </div>
+                <span>{user?.name || "Profile"}</span>
+              </Link>
+            ) : (
+              <Link
+                to="/login"
+                className="flex items-center space-x-1 text-gray-700 hover:text-blue-600 font-medium transition"
+              >
+                <FaUser size={20} />
+                <span>Login</span>
+              </Link>
+            )}
           </nav>
 
           {/* Mobile Menu Button */}
@@ -89,14 +103,27 @@ const Header = () => {
               to="/cart"
               className="flex items-center space-x-2 text-gray-700 hover:text-blue-600"
             >
-              <FaShoppingCart /> <span>Cart (0)</span>
+              <FaShoppingCart /> <span>Cart ({cartCount})</span>
             </Link>
-            <Link
-              to="/login"
-              className="flex items-center space-x-2 text-gray-700 hover:text-blue-600"
-            >
-              <FaUser /> <span>Login</span>
-            </Link>
+
+            {/* === 3. MOBILE LOGIC UPDATED === */}
+            {isAuthenticated ? (
+              <Link
+                to="/profile"
+                className="flex items-center space-x-2 text-gray-700 hover:text-blue-600"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <FaUser /> <span>My Profile ({user?.name})</span>
+              </Link>
+            ) : (
+              <Link
+                to="/login"
+                className="flex items-center space-x-2 text-gray-700 hover:text-blue-600"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <FaUser /> <span>Login</span>
+              </Link>
+            )}
           </div>
         )}
       </div>
