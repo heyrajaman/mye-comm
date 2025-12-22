@@ -18,14 +18,25 @@ export const loginUser = async ({ phone, password }) => {
   if (USE_MOCK) {
     await new Promise((resolve) => setTimeout(resolve, 800));
 
+    // Check if the phone number matches the mock user
+    const MOCK_PHONE = "9831876254";
+    const MOCK_PASSWORD = "password123"; // You can add password check too
+
+    if (phone !== MOCK_PHONE) {
+      throw new Error("Invalid phone number");
+    }
+
+    if (password !== MOCK_PASSWORD) {
+      throw new Error("Invalid password");
+    }
+
     // MOCK SUCCESS RESPONSE
     return {
       token: "fake-jwt-token-phone-login",
       user: {
         id: "user_001",
         name: "Test User",
-        // FIX: Use the phone number passed in, not the hardcoded one
-        phone: phone,
+        phone: 9831876254,
         role: "customer",
       },
     };
