@@ -63,8 +63,19 @@ const Header = () => {
                 to="/profile"
                 className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 font-medium transition"
               >
-                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
-                  <FaUser size={14} />
+                {/* LOGIC: Check for Profile Pic */}
+                <div className="w-8 h-8 rounded-full overflow-hidden border border-gray-200 bg-gray-100 flex items-center justify-center">
+                  {user?.profilePic ? (
+                    <img
+                      src={user.profilePic}
+                      alt="Avatar"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-blue-600 font-bold text-xs">
+                      {user?.name?.charAt(0) || <FaUser size={12} />}
+                    </span>
+                  )}
                 </div>
                 <span>{user?.name || "Profile"}</span>
               </Link>
@@ -113,6 +124,19 @@ const Header = () => {
                 className="flex items-center space-x-2 text-gray-700 hover:text-blue-600"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
+                <div className="w-6 h-6 rounded-full overflow-hidden border border-gray-200 bg-gray-100 flex items-center justify-center">
+                  {user?.profilePic ? (
+                    <img
+                      src={user.profilePic}
+                      alt="Avatar"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-blue-600 font-bold text-xs">
+                      {user?.name?.charAt(0) || <FaUser size={10} />}
+                    </span>
+                  )}
+                </div>
                 <FaUser /> <span>My Profile ({user?.name})</span>
               </Link>
             ) : (

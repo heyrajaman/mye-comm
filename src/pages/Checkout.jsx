@@ -1,14 +1,16 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Navigate, useNavigate } from "react-router-dom";
 import AddressForm from "../components/checkout/AddressForm";
 import PaymentForm from "../components/checkout/PaymentForm";
-import { createOrder } from "../services/orderService";
+import { createOrder } from "../services/orderService"; // Ensure this import exists
 import { clearCartThunk } from "../store/thunks/cartThunks";
+import { getAddresses } from "../services/addressService";
+import { FaPlus } from "react-icons/fa";
 
 const Checkout = () => {
   const navigate = useNavigate();
-  const dispatch = useDispatch(); // <--- FIXED: UNCOMMENTED THIS LINE
+  const dispatch = useDispatch();
 
   const { items } = useSelector((state) => state.cart);
   const { user } = useSelector((state) => state.auth);
@@ -17,23 +19,54 @@ const Checkout = () => {
   const [shippingAddress, setShippingAddress] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  // --- SAVED ADDRESSES STATE ---
+  const [savedAddresses, setSavedAddresses] = useState([]);
+  const [selectedAddressId, setSelectedAddressId] = useState(null);
+  const [showNewAddressForm, setShowNewAddressForm] = useState(false);
+
+  // --- FETCH ADDRESSES ON LOAD ---
+  useEffect(() => {
+    if (user) {
+      getAddresses(user.id).then((data) => {
+        setSavedAddresses(data);
+        if (data.length > 0) {
+          setSelectedAddressId(data[0].id);
+        } else {
+          setShowNewAddressForm(true);
+        }
+      });
+    }
+  }, [user]);
+
   if (items.length === 0) {
     return <Navigate to="/shop" replace />;
   }
 
+  // CALCULATION
   const subtotal = items.reduce(
     (acc, item) => acc + (item.Product?.price || 0) * item.quantity,
     0
   );
-  const total = subtotal;
+  const shippingCost = subtotal > 500 ? 0 : 50;
+  const total = subtotal + shippingCost;
 
-  // Step 1 -> Step 2
-  const handleAddressSubmit = (addressData) => {
+  // HANDLERS
+  const handleNewAddressSubmit = (addressData) => {
     setShippingAddress(addressData);
     setStep(2);
   };
 
-  // Step 2 -> Place Order
+  const handleSavedAddressSubmit = () => {
+    const selected = savedAddresses.find(
+      (addr) => addr.id === selectedAddressId
+    );
+    if (selected) {
+      setShippingAddress(selected);
+      setStep(2);
+    }
+  };
+
+  // --- ORDER SUBMISSION LOGIC ---
   const handleOrderSubmit = async (paymentMethod) => {
     try {
       setLoading(true);
@@ -50,20 +83,28 @@ const Checkout = () => {
         paymentMethod,
       };
 
-      console.log("Sending Order:", orderData);
+      console.log("Preparing to send Order:", orderData);
 
-      // await createOrder(orderData); // Uncomment when backend is ready
+      // ============================================================
+      // 👇👇👇 BACKEND CONNECTION ZONE 👇👇👇
+      // ============================================================
 
-      // SIMULATE SUCCESS
+      // OPTION 1: REAL BACKEND (Uncomment this when API is ready)
+      // --------------------------------------------------------
+      // const response = await createOrder(orderData);
+      // console.log("Order Placed Successfully:", response);
+
+      // OPTION 2: MOCK / SIMULATION (Delete this when using Real Backend)
+      // --------------------------------------------------------
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
-      // --- FIXED SECTION START ---
-      // 1. CLEAR THE CART (both Redux state and localStorage)
+      // ============================================================
+
+      // 1. Clear Cart (Redux & LocalStorage)
       await dispatch(clearCartThunk()).unwrap();
 
-      // 2. REDIRECT TO SUCCESS PAGE
+      // 2. Redirect to Success Page
       navigate("/order-success");
-      // --- FIXED SECTION END ---
     } catch (error) {
       console.error("Order Failed", error);
       alert("Failed to place order. Please try again.");
@@ -88,7 +129,7 @@ const Checkout = () => {
       <div className="flex flex-col lg:flex-row gap-8">
         {/* LEFT COLUMN */}
         <div className="lg:w-2/3 space-y-6">
-          {/* STEP 1: ADDRESS */}
+          {/* STEP 1: SHIPPING ADDRESS */}
           <div
             className={`bg-white p-6 rounded-xl shadow-sm border ${
               step === 1
@@ -119,19 +160,92 @@ const Checkout = () => {
               )}
             </div>
 
-            {step === 1 ? (
-              <AddressForm
-                onSubmit={handleAddressSubmit}
-                initialData={shippingAddress}
-              />
-            ) : (
+            {step === 1 && (
+              <div className="animate-fadeIn">
+                {/* LOGIC: Show List vs Show Form */}
+                {!showNewAddressForm && savedAddresses.length > 0 ? (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {savedAddresses.map((addr) => (
+                        <div
+                          key={addr.id}
+                          onClick={() => setSelectedAddressId(addr.id)}
+                          className={`cursor-pointer border rounded-xl p-4 transition relative flex items-start gap-3 
+                            ${
+                              selectedAddressId === addr.id
+                                ? "border-blue-600 bg-blue-50"
+                                : "border-gray-200 hover:border-blue-300"
+                            }`}
+                        >
+                          <input
+                            type="radio"
+                            name="savedAddress"
+                            checked={selectedAddressId === addr.id}
+                            onChange={() => setSelectedAddressId(addr.id)}
+                            className="mt-1 w-4 h-4 text-blue-600"
+                          />
+                          <div>
+                            <p className="font-bold text-gray-900">
+                              {addr.fullName}
+                            </p>
+                            <p className="text-sm text-gray-600">
+                              {addr.addressLine1}
+                            </p>
+                            <p className="text-sm text-gray-600">
+                              {addr.city}, {addr.zipCode}
+                            </p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              📞 {addr.phone}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row gap-4 mt-6">
+                      <button
+                        onClick={handleSavedAddressSubmit}
+                        className="flex-1 bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition"
+                      >
+                        Deliver Here
+                      </button>
+                      <button
+                        onClick={() => setShowNewAddressForm(true)}
+                        className="flex-1 border border-gray-300 text-gray-700 font-bold py-3 rounded-lg hover:bg-gray-50 transition flex items-center justify-center gap-2"
+                      >
+                        <FaPlus /> Add New Address
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    {savedAddresses.length > 0 && (
+                      <button
+                        onClick={() => setShowNewAddressForm(false)}
+                        className="mb-4 text-blue-600 hover:underline text-sm font-semibold flex items-center gap-1"
+                      >
+                        ← Back to Saved Addresses
+                      </button>
+                    )}
+                    <AddressForm
+                      onSubmit={handleNewAddressSubmit}
+                      buttonText="Deliver Here"
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {step > 1 && (
               <div className="text-gray-600 ml-10 text-sm">
                 <p className="font-medium text-gray-900">
                   {shippingAddress?.fullName}
                 </p>
                 <p>
-                  {shippingAddress?.addressLine1}, {shippingAddress?.city}
+                  {shippingAddress?.addressLine1}, {shippingAddress?.city} -{" "}
+                  {shippingAddress?.zipCode}
                 </p>
+                <p>Phone: {shippingAddress?.phone}</p>
               </div>
             )}
           </div>
@@ -202,7 +316,11 @@ const Checkout = () => {
               </div>
               <div className="flex justify-between">
                 <span>Shipping</span>
-                <span className="text-green-600">Free</span>
+                {shippingCost === 0 ? (
+                  <span className="text-green-600 font-medium">Free</span>
+                ) : (
+                  <span>₹{shippingCost}</span>
+                )}
               </div>
               <div className="flex justify-between text-xl font-bold text-gray-900 pt-2 border-t border-gray-100 mt-2">
                 <span>Total</span>

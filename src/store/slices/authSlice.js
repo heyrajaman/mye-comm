@@ -78,12 +78,26 @@ const authSlice = createSlice({
         window.location.reload();
       }
     },
+    updateUser: (state, action) => {
+      // Merge old user data with new updates
+      state.user = { ...state.user, ...action.payload };
+      // Update local storage so the change persists on refresh
+      if (localStorage.getItem("user")) {
+        localStorage.setItem("user", JSON.stringify(state.user));
+      }
+    },
     clearError: (state) => {
       state.error = null;
     },
   },
 });
 
-export const { authStart, authSuccess, authFailure, logout, clearError } =
-  authSlice.actions;
+export const {
+  authStart,
+  authSuccess,
+  authFailure,
+  logout,
+  updateUser,
+  clearError,
+} = authSlice.actions;
 export default authSlice.reducer;
