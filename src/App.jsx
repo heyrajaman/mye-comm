@@ -19,6 +19,14 @@ import AdminProducts from "./pages/admin/AdminProducts";
 import AdminAddProduct from "./components/admin/AdminAddProduct";
 import AdminOrders from "./pages/admin/AdminOrders";
 import AdminUsers from "./pages/admin/AdminUsers";
+import VendorRegister from "./pages/vendor/VendorRegister";
+import VendorLayout from "./components/vendor/VendorLayout";
+import VendorDashboard from "./pages/vendor/VendorDashboard";
+import VendorProducts from "./pages/vendor/VendorProducts";
+import VendorAddProduct from "./pages/vendor/VendorAddProduct";
+import VendorOrders from "./pages/vendor/VendorOrders";
+import VendorProfile from "./pages/vendor/VendorProfile";
+import AdminSettings from "./pages/admin/AdminSettings";
 
 function App() {
   return (
@@ -33,8 +41,19 @@ function App() {
             <Route path="products/new" element={<AdminAddProduct />} />
             <Route path="orders" element={<AdminOrders />} />
             <Route path="users" element={<AdminUsers />} />
+            <Route path="settings" element={<AdminSettings />} />
             {/* Future admin routes... */}
           </Route>
+        </Route>
+
+        {/* === VENDOR ROUTES === */}
+        {/* In real app, wrap this with <VendorRoute> to protect it */}
+        <Route path="/vendor" element={<VendorLayout />}>
+          <Route path="dashboard" element={<VendorDashboard />} />
+          <Route path="products" element={<VendorProducts />} />
+          <Route path="products/new" element={<VendorAddProduct />} />
+          <Route path="orders" element={<VendorOrders />} />
+          <Route path="profile" element={<VendorProfile />} />
         </Route>
 
         {/* === CUSTOMER ROUTES (Uses AppShell with Header/Footer) === */}
@@ -42,6 +61,10 @@ function App() {
           <Route index element={<Home />} />
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
+
+          {/* <--- 2. ADD VENDOR ROUTE HERE --- */}
+          <Route path="vendor/register" element={<VendorRegister />} />
+
           <Route path="shop" element={<Shop />} />
           <Route path="product/:id" element={<ProductDetails />} />
           <Route path="cart" element={<Cart />} />

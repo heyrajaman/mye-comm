@@ -6,7 +6,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { authStart, authSuccess, authFailure } from "../store/slices/authSlice";
 import { loginUser } from "../services/authService";
 
-// Updated Schema: Validate Phone instead of Email
+// Schema: Validate Phone & Password
 const schema = yup
   .object({
     phone: yup
@@ -33,9 +33,21 @@ const Login = () => {
   const onSubmit = async (data) => {
     dispatch(authStart());
     try {
+      // 1. Authenticate User
       const result = await loginUser(data);
       dispatch(authSuccess(result));
-      navigate("/");
+
+      // 2. CHECK ROLE & REDIRECT
+      // Note: Depending on your backend, role might be inside result.user.role or just result.role
+      const role = result.role || result.user?.role;
+
+      if (role === "admin") {
+        navigate("/admin/dashboard");
+      } else if (role === "vendor") {
+        navigate("/vendor/dashboard");
+      } else {
+        navigate("/"); // Customers go to Home/Shop
+      }
     } catch (err) {
       dispatch(
         authFailure(
@@ -94,12 +106,31 @@ const Login = () => {
         </button>
       </form>
 
-      <p className="mt-4 text-center text-sm text-gray-600">
-        Don't have an account?{" "}
-        <Link to="/register" className="text-blue-600 hover:underline">
-          Sign up
-        </Link>
-      </p>
+      {/* FOOTER LINKS */}
+      <div className="mt-6 text-center text-sm">
+        <p className="text-gray-600">
+          Don't have an account?{" "}
+          <Link
+            to="/register"
+            className="text-blue-600 hover:underline font-semibold"
+          >
+            Sign up (Customer)
+          </Link>
+        </p>
+
+        {/* Added Link for Vendor Registration */}
+        <div className="mt-3 pt-3 border-t border-gray-100">
+          <p className="text-gray-500">
+            Want to sell products?{" "}
+            <Link
+              to="/vendor/register"
+              className="text-purple-600 hover:underline font-bold"
+            >
+              Register as Vendor
+            </Link>
+          </p>
+        </div>
+      </div>
     </div>
   );
 };
