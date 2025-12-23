@@ -11,27 +11,49 @@ import Checkout from "./pages/Checkout";
 import OrderSuccess from "./pages/OrderSuccess";
 import Profile from "./pages/Profile";
 
+// --- ADMIN IMPORTS ---
+import AdminLayout from "./components/admin/AdminLayout";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminRoute from "./components/auth/AdminRoute";
+import AdminProducts from "./pages/admin/AdminProducts";
+import AdminAddProduct from "./components/admin/AdminAddProduct";
+import AdminOrders from "./pages/admin/AdminOrders";
+import AdminUsers from "./pages/admin/AdminUsers";
+
 function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* === ADMIN ROUTES (PROTECTED) === */}
+        {/* Wrap AdminLayout with AdminRoute */}
+        <Route element={<AdminRoute />}>
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route path="dashboard" element={<AdminDashboard />} />
+            <Route path="products" element={<AdminProducts />} />{" "}
+            <Route path="products/new" element={<AdminAddProduct />} />
+            <Route path="orders" element={<AdminOrders />} />
+            <Route path="users" element={<AdminUsers />} />
+            {/* Future admin routes... */}
+          </Route>
+        </Route>
+
+        {/* === CUSTOMER ROUTES (Uses AppShell with Header/Footer) === */}
         <Route path="/" element={<AppShell />}>
           <Route index element={<Home />} />
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
-
           <Route path="shop" element={<Shop />} />
           <Route path="product/:id" element={<ProductDetails />} />
           <Route path="cart" element={<Cart />} />
-          {/* Example of how to protect future routes */}
+
+          {/* Protected Customer Routes */}
           <Route element={<ProtectedRoute />}>
             <Route path="checkout" element={<Checkout />} />
             <Route path="order-success" element={<OrderSuccess />} />
             <Route path="profile" element={<Profile />} />
-            {/* <Route path="profile" element={<Profile />} /> */}
-            {/* <Route path="checkout" element={<Checkout />} /> */}
           </Route>
 
+          {/* 404 Page (Only for customer paths) */}
           <Route
             path="*"
             element={

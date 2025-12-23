@@ -124,3 +124,58 @@ export const changePassword = async (userId, currentPassword, newPassword) => {
   });
   return response.data;
 };
+
+// admin purpose
+// ... existing imports and functions ...
+
+// --- NEW: FETCH ALL USERS (For Admin) ---
+export const getAllUsers = async () => {
+  if (USE_MOCK) {
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    // 1. Get the currently active/stored user
+    const storedUser = JSON.parse(localStorage.getItem("mock_user_db"));
+
+    // 2. Create some dummy users to make the list look realistic
+    const dummyUsers = [
+      {
+        id: "user_002",
+        name: "Rahul Sharma",
+        email: "rahul@example.com",
+        role: "customer",
+        phone: "9876500001",
+      },
+      {
+        id: "user_003",
+        name: "Priya Singh",
+        email: "priya@example.com",
+        role: "customer",
+        phone: "9876500002",
+      },
+      {
+        id: "user_004",
+        name: "Amit Verma",
+        email: "amit@example.com",
+        role: "customer",
+        phone: "9876500003",
+      },
+    ];
+
+    // Combine them (If storedUser exists, add it to the list)
+    return storedUser ? [storedUser, ...dummyUsers] : dummyUsers;
+  }
+
+  // Real Backend Call
+  const response = await api.get("/users");
+  return response.data;
+};
+
+// --- NEW: DELETE USER (For Admin) ---
+export const deleteUser = async (userId) => {
+  if (USE_MOCK) {
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    return userId; // In mock, we just pretend to delete
+  }
+  const response = await api.delete(`/users/${userId}`);
+  return response.data;
+};
