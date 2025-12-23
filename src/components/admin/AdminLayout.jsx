@@ -1,4 +1,4 @@
-import { Outlet } from "react-router-dom";
+import { Outlet, Link } from "react-router-dom";
 import AdminSidebar from "./AdminSidebar";
 
 const AdminLayout = () => {
@@ -11,12 +11,16 @@ const AdminLayout = () => {
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top Header */}
         <header className="bg-white shadow-sm h-16 flex items-center px-6 justify-end">
-          <div className="flex items-center gap-2">
+          {/* <--- 2. Wrap this section in a Link to /admin/settings */}
+          <Link
+            to="/admin/settings"
+            className="flex items-center gap-2 hover:bg-gray-50 p-2 rounded-lg transition cursor-pointer"
+          >
             <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">
               A
             </div>
             <span className="font-semibold text-gray-700">Admin</span>
-          </div>
+          </Link>
         </header>
 
         {/* Page Content Rendered Here */}
