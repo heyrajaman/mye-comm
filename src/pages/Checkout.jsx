@@ -3,7 +3,9 @@ import { useSelector, useDispatch } from "react-redux";
 import { Navigate, useNavigate } from "react-router-dom";
 import AddressForm from "../components/checkout/AddressForm";
 import PaymentForm from "../components/checkout/PaymentForm";
-import { createOrder } from "../services/orderService"; // Ensure this import exists
+// 1. IMPORT THE NEW PAYMENT SERVICE
+import { initiatePayment } from "../services/paymentService";
+import { createOrder } from "../services/orderService";
 import { clearCartThunk } from "../store/thunks/cartThunks";
 import { getAddresses } from "../services/addressService";
 import { FaPlus } from "react-icons/fa";
@@ -66,48 +68,50 @@ const Checkout = () => {
     }
   };
 
-  // --- ORDER SUBMISSION LOGIC ---
+  // --- UPDATED: ORDER SUBMISSION LOGIC ---
   const handleOrderSubmit = async (paymentMethod) => {
     try {
       setLoading(true);
 
-      const orderData = {
-        userId: user?.id,
-        items: items.map((item) => ({
-          productId: item.productId,
-          quantity: item.quantity,
-          price: item.Product?.price,
-        })),
-        totalAmount: total,
-        shippingAddress,
-        paymentMethod,
-      };
+      // 2. TRIGGER PAYMENT POPUP (Mock or Real)
+      await initiatePayment(total, user, async (paymentResponse) => {
+        // === THIS RUNS ONLY IF USER CLICKS "OK" / PAYS SUCCESSFULLY ===
 
-      console.log("Preparing to send Order:", orderData);
+        const orderData = {
+          userId: user?.id,
+          items: items.map((item) => ({
+            productId: item.productId,
+            quantity: item.quantity,
+            price: item.Product?.price,
+          })),
+          totalAmount: total,
+          shippingAddress,
+          paymentMethod,
+          // Capture Payment Details from Razorpay (Mock or Real)
+          paymentId: paymentResponse.razorpay_payment_id,
+          paymentStatus: "Paid",
+        };
 
-      // ============================================================
-      // 👇👇👇 BACKEND CONNECTION ZONE 👇👇👇
-      // ============================================================
+        console.log("Payment Success! Creating Order:", orderData);
 
-      // OPTION 1: REAL BACKEND (Uncomment this when API is ready)
-      // --------------------------------------------------------
-      // const response = await createOrder(orderData);
-      // console.log("Order Placed Successfully:", response);
+        // 3. Create Order in Database (Mock or Real)
+        const response = await createOrder(orderData);
 
-      // OPTION 2: MOCK / SIMULATION (Delete this when using Real Backend)
-      // --------------------------------------------------------
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+        if (response) {
+          // Assuming createOrder returns the order object
+          // 4. Clear Cart
+          await dispatch(clearCartThunk()).unwrap();
 
-      // ============================================================
-
-      // 1. Clear Cart (Redux & LocalStorage)
-      await dispatch(clearCartThunk()).unwrap();
-
-      // 2. Redirect to Success Page
-      navigate("/order-success");
+          // 5. Redirect
+          navigate("/order-success", {
+            state: { orderId: response.id || response.orderId },
+          });
+        }
+      });
     } catch (error) {
-      console.error("Order Failed", error);
-      alert("Failed to place order. Please try again.");
+      console.error("Payment or Order Failed", error);
+      // Only alert if it's an actual error (not just user cancelling)
+      // Our mock service handles the "User Cancelled" alert internally
     } finally {
       setLoading(false);
     }
@@ -117,7 +121,9 @@ const Checkout = () => {
     return (
       <div className="min-h-screen flex flex-col justify-center items-center">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600 mb-4"></div>
-        <p className="text-gray-600 font-medium">Processing your order...</p>
+        <p className="text-gray-600 font-medium">
+          Processing secure payment...
+        </p>
       </div>
     );
   }
@@ -162,7 +168,6 @@ const Checkout = () => {
 
             {step === 1 && (
               <div className="animate-fadeIn">
-                {/* LOGIC: Show List vs Show Form */}
                 {!showNewAddressForm && savedAddresses.length > 0 ? (
                   <div className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

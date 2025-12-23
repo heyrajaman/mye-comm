@@ -1,55 +1,38 @@
-// Toggle this to FALSE when backend is ready
+// Toggle this to FALSE later when you have a Real Key
 const USE_MOCK = true;
 
-// !!! IMPORTANT: THIS IS A PUBLIC TEST KEY !!!
-// For now, we use a dummy key. Later you will put your own Razorpay Test Key here.
-const RAZORPAY_KEY_ID = "rzp_test_YourKeyHere";
+// You can leave this empty for now
+const RAZORPAY_KEY_ID = "";
 
 export const initiatePayment = async (amount, user, onSuccess) => {
   if (USE_MOCK) {
-    // 1. Simulate Backend creating an order
-    // In real life, we would call api.post('/payment/create-order')
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    console.log("Initializing Mock Payment...");
 
-    const options = {
-      key: RAZORPAY_KEY_ID, // Enter the Key ID generated from the Dashboard
-      amount: amount * 100, // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
-      currency: "INR",
-      name: "My E-Commerce Store", // Your Business Name
-      description: "Test Transaction",
-      image: "https://via.placeholder.com/150", // Your Logo
-      order_id: "", // In Mock mode, we leave this empty (Razorpay will generate a local one for testing)
+    // 1. Simulate a short network delay (like connecting to a bank)
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      // Handler: What happens when payment succeeds?
-      handler: function (response) {
-        // response.razorpay_payment_id
-        // response.razorpay_order_id
-        // response.razorpay_signature
-        console.log("Payment Successful!", response);
-        onSuccess(response); // Call the callback function to place the order
-      },
+    // 2. Open a Browser Confirmation Box (This acts as the "Payment Popup")
+    const isConfirmed = window.confirm(
+      `MOCK PAYMENT GATEWAY\n\nPay ₹${amount}?\n\n(Click 'OK' to simulate Success, 'Cancel' to simulate Failure)`
+    );
 
-      prefill: {
-        name: user?.name || "Test User",
-        email: user?.email || "test@example.com",
-        contact: user?.phone || "9999999999",
-      },
-      theme: {
-        color: "#3399cc",
-      },
-    };
+    if (isConfirmed) {
+      // 3. Simulate Success Response from Razorpay
+      const mockResponse = {
+        razorpay_payment_id: "pay_mock_" + Date.now(),
+        razorpay_order_id: "order_mock_" + Date.now(),
+        razorpay_signature: "mock_signature_123",
+      };
 
-    // 2. Open the Razorpay Popup
-    const rzp1 = new window.Razorpay(options);
-
-    // Handle Payment Failure
-    rzp1.on("payment.failed", function (response) {
-      alert(`Payment Failed: ${response.error.description}`);
-    });
-
-    rzp1.open();
+      console.log("Payment Successful (Mock)!", mockResponse);
+      onSuccess(mockResponse); // <--- Triggers the "Place Order" logic
+    } else {
+      // 4. Simulate Failure
+      alert("Payment Failed: User cancelled the transaction.");
+    }
   } else {
-    // Real Backend Integration Logic goes here later
-    console.log("Backend not connected yet");
+    // Real Backend/Razorpay Logic (We will add this later when you have a key)
+    console.log("Real payment integration pending key...");
+    alert("Real Payment Key missing. Switch to Mock mode.");
   }
 };
