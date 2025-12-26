@@ -284,36 +284,48 @@ const Checkout = () => {
           </div>
         </div>
 
-        {/* RIGHT COLUMN: SUMMARY */}
+        {/* RIGHT COLUMN: SUMMARY (UPDATED) */}
         <div className="lg:w-1/3">
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 sticky top-24">
             <h2 className="text-xl font-bold mb-4 text-gray-800">
               Order Summary
             </h2>
             <div className="space-y-4 mb-6 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
-              {items.map((item) => (
-                <div key={item.id} className="flex gap-4 items-center">
-                  <div className="w-16 h-16 bg-gray-100 rounded-md overflow-hidden flex-shrink-0">
-                    <img
-                      src={item.Product?.imageUrl}
-                      alt={item.Product?.name}
-                      className="w-full h-full object-contain mix-blend-multiply"
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-semibold text-gray-800 line-clamp-1">
-                      {item.Product?.name}
+              {items.map((item) => {
+                // ROBUST DATA CHECK: Handle uppercase 'Product' or lowercase 'product'
+                const product = item.Product || item.product || {};
+
+                return (
+                  <div
+                    key={item.id || item.cartItemId}
+                    className="flex gap-4 items-center"
+                  >
+                    <div className="w-16 h-16 bg-gray-100 rounded-md overflow-hidden flex-shrink-0">
+                      <img
+                        src={
+                          product.imageUrl || "https://via.placeholder.com/64"
+                        }
+                        alt={product.name || "Product"}
+                        className="w-full h-full object-contain mix-blend-multiply"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-gray-800 line-clamp-1">
+                        {product.name || "Unknown Product"}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        Qty: {item.quantity}
+                      </p>
+                    </div>
+                    <p className="text-sm font-bold text-gray-800">
+                      ₹{((product.price || 0) * item.quantity).toLocaleString()}
                     </p>
-                    <p className="text-xs text-gray-500">
-                      Qty: {item.quantity}
-                    </p>
                   </div>
-                  <p className="text-sm font-bold text-gray-800">
-                    ₹{(item.Product?.price * item.quantity).toLocaleString()}
-                  </p>
-                </div>
-              ))}
+                );
+              })}
             </div>
+
+            {/* Totals Calculation */}
             <div className="border-t border-gray-100 pt-4 space-y-2 text-gray-600">
               <div className="flex justify-between">
                 <span>Subtotal</span>

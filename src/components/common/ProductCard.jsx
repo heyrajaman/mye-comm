@@ -1,17 +1,17 @@
 import { Link, useNavigate } from "react-router-dom";
 import { FaShoppingCart } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
-import { addItemToCart } from "../../store/thunks/cartThunks";
+import { addItemToCart, getCartItems } from "../../store/thunks/cartThunks";
 
 const ProductCard = ({ product }) => {
-  // 2. INITIALIZE HOOKS
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { isAuthenticated } = useSelector((state) => state.auth);
+  // Get current cart items to check existing quantity
+  const { items } = useSelector((state) => state.cart);
 
-  // 3. ADD THIS HANDLER FUNCTION
-  const handleAddToCart = (e) => {
-    e.preventDefault(); // Prevents clicking the card link
+  const handleAddToCart = async (e) => {
+    e.preventDefault();
 
     if (!isAuthenticated) {
       alert("Please login to add items to your cart!");
@@ -19,9 +19,32 @@ const ProductCard = ({ product }) => {
       return;
     }
 
-    dispatch(addItemToCart({ productId: product.id, quantity: 1 }));
-    alert("Item added to cart!");
+    // --- STOCK CHECK LOGIC ---
+    // 1. Find if this item is already in the cart
+    const existingItem = items.find((item) => item.productId === product.id);
+    const currentQty = existingItem ? existingItem.quantity : 0;
+
+    // 2. Check if adding 1 more exceeds stock
+    if (currentQty + 1 > product.stock) {
+      alert(`Cannot add more. Only ${product.stock} items available in stock!`);
+      return;
+    }
+
+    try {
+      // 3. Add to cart and wait for success
+      await dispatch(
+        addItemToCart({ productId: product.id, quantity: 1 })
+      ).unwrap();
+
+      // 4. Update Header Icon Immediately
+      dispatch(getCartItems());
+
+      alert("Item added to cart!");
+    } catch (error) {
+      console.error("Failed to add to cart", error);
+    }
   };
+
   return (
     <div className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden flex flex-col">
       <Link
@@ -29,7 +52,6 @@ const ProductCard = ({ product }) => {
         className="block overflow-hidden relative"
       >
         <div className="h-48 bg-gray-100 flex items-center justify-center relative">
-          {/* Placeholder for Image */}
           {product.imageUrl ? (
             <img
               src={product.imageUrl}
@@ -58,7 +80,12 @@ const ProductCard = ({ product }) => {
           </span>
           <button
             onClick={handleAddToCart}
-            className="p-2 bg-blue-100 text-blue-600 rounded-full hover:bg-blue-200 transition"
+            disabled={product.stock <= 0}
+            className={`p-2 rounded-full transition ${
+              product.stock > 0
+                ? "bg-blue-100 text-blue-600 hover:bg-blue-200"
+                : "bg-gray-200 text-gray-400 cursor-not-allowed"
+            }`}
           >
             <FaShoppingCart size={18} />
           </button>
