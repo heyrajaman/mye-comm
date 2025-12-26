@@ -27,6 +27,10 @@ const Cart = () => {
     return total + price * item.quantity;
   }, 0);
 
+  // Shipping: free for orders over ₹1000, otherwise ₹50
+  const shippingCost = cartTotal > 1000 ? 0 : 50;
+  const total = cartTotal + shippingCost;
+
   if (!isAuthenticated) {
     return (
       <div className="text-center py-20">
@@ -171,7 +175,11 @@ const Cart = () => {
               </div>
               <div className="flex justify-between">
                 <span>Shipping</span>
-                <span className="text-green-600">Free</span>
+                {shippingCost === 0 ? (
+                  <span className="text-green-600">Free</span>
+                ) : (
+                  <span>₹{shippingCost.toFixed(2)}</span>
+                )}
               </div>
               <div className="flex justify-between">
                 <span>Tax</span>
@@ -181,7 +189,7 @@ const Cart = () => {
 
             <div className="flex justify-between text-xl font-bold text-gray-900 mb-6">
               <span>Total</span>
-              <span>₹{cartTotal.toFixed(2)}</span>
+              <span>₹{total.toFixed(2)}</span>
             </div>
 
             <button

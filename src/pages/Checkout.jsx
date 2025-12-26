@@ -46,10 +46,12 @@ const Checkout = () => {
 
   // CALCULATION
   const subtotal = items.reduce(
-    (acc, item) => acc + (item.Product?.price || 0) * item.quantity,
-    0
+    (acc, item) => {
+      const price = item.price || 0;
+      return acc + price * item.quantity;
+    }, 0
   );
-  const shippingCost = subtotal > 500 ? 0 : 50;
+  const shippingCost = subtotal > 1000 ? 0 : 50;
   const total = subtotal + shippingCost;
 
   // HANDLERS
@@ -82,7 +84,7 @@ const Checkout = () => {
           items: items.map((item) => ({
             productId: item.productId,
             quantity: item.quantity,
-            price: item.Product?.price,
+            price: item.price,
           })),
           totalAmount: total,
           shippingAddress,
@@ -303,22 +305,22 @@ const Checkout = () => {
                     <div className="w-16 h-16 bg-gray-100 rounded-md overflow-hidden flex-shrink-0">
                       <img
                         src={
-                          product.imageUrl || "https://via.placeholder.com/64"
+                          item.image || "https://via.placeholder.com/64"
                         }
-                        alt={product.name || "Product"}
+                        alt={item.name || "Product"}
                         className="w-full h-full object-contain mix-blend-multiply"
                       />
                     </div>
                     <div className="flex-1">
                       <p className="text-sm font-semibold text-gray-800 line-clamp-1">
-                        {product.name || "Unknown Product"}
+                        {item.name || "Unknown Product"}
                       </p>
                       <p className="text-xs text-gray-500">
                         Qty: {item.quantity}
                       </p>
                     </div>
                     <p className="text-sm font-bold text-gray-800">
-                      ₹{((product.price || 0) * item.quantity).toLocaleString()}
+                      ₹{((item.price || 0) * item.quantity).toLocaleString()}
                     </p>
                   </div>
                 );
