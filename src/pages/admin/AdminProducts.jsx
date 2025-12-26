@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-// FIX: Import 'fetchProducts' instead of 'getAllProducts'
-import { fetchProducts, deleteProduct } from "../../services/productService";
+// FIX 1: Import 'getProducts' (matches your updated service)
+import { getProducts, deleteProduct } from "../../services/productService";
 import { FaEdit, FaTrash, FaPlus } from "react-icons/fa";
 import { Link } from "react-router-dom";
 
@@ -15,8 +15,8 @@ const AdminProducts = () => {
 
   const loadProducts = async () => {
     try {
-      // FIX: Call the correct function name
-      const data = await fetchProducts();
+      // FIX 2: Call the correct function name
+      const data = await getProducts();
       setProducts(data);
     } catch (error) {
       console.error("Failed to fetch products", error);
@@ -43,7 +43,6 @@ const AdminProducts = () => {
     <div className="animate-fadeIn">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-800">Products</h2>
-        {/* We will build this 'new' route next */}
         <Link
           to="/admin/products/new"
           className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition"
@@ -73,7 +72,9 @@ const AdminProducts = () => {
                   <div className="flex items-center">
                     <div className="w-10 h-10 rounded-md overflow-hidden border border-gray-200 mr-3">
                       <img
-                        src={product.imageUrl}
+                        src={
+                          product.imageUrl || "https://via.placeholder.com/150"
+                        }
                         alt={product.name}
                         className="w-full h-full object-contain mix-blend-multiply"
                       />
@@ -83,15 +84,27 @@ const AdminProducts = () => {
                 </td>
                 <td className="py-3 px-6 text-left">
                   <span className="bg-blue-100 text-blue-600 py-1 px-3 rounded-full text-xs">
-                    {product.category?.name || product.category}
+                    {/* Handle nested Category object from backend */}
+                    {product.Category?.name ||
+                      product.category ||
+                      "Uncategorized"}
                   </span>
                 </td>
                 <td className="py-3 px-6 text-center font-bold">
                   ₹{product.price}
                 </td>
                 <td className="py-3 px-6 text-center">
-                  {/* Mock Stock value for now */}
-                  <span className="text-green-600 font-semibold">In Stock</span>
+                  <span
+                    className={
+                      product.stock > 0
+                        ? "text-green-600 font-semibold"
+                        : "text-red-500 font-semibold"
+                    }
+                  >
+                    {product.stock > 0
+                      ? `${product.stock} in Stock`
+                      : "Out of Stock"}
+                  </span>
                 </td>
                 <td className="py-3 px-6 text-center">
                   <div className="flex item-center justify-center gap-4">

@@ -2,13 +2,16 @@ import axios from "axios";
 import { store } from "../store/store";
 import { logout } from "../store/slices/authSlice";
 
+// Point to API Gateway
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
+  baseURL: "http://localhost:5000/api",
   headers: {
     "Content-Type": "application/json",
   },
+  withCredentials: true, // Needed for CORS/Cookies if used
 });
 
+// Attach Token from Redux Store to every request
 api.interceptors.request.use(
   (config) => {
     const state = store.getState();
@@ -21,6 +24,7 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// Auto-Logout on 401 (Unauthorized)
 api.interceptors.response.use(
   (response) => response,
   (error) => {
