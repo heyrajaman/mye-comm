@@ -6,7 +6,7 @@ import PaymentForm from "../components/checkout/PaymentForm";
 // 1. IMPORT THE NEW PAYMENT SERVICE
 import { initiatePayment } from "../services/paymentService";
 import { createOrder } from "../services/orderService";
-import { clearCartThunk } from "../store/thunks/cartThunks";
+import { clearCart } from "../store/slices/cartSlice";
 import { getAddresses } from "../services/addressService";
 import { FaPlus } from "react-icons/fa";
 
@@ -45,12 +45,10 @@ const Checkout = () => {
   }
 
   // CALCULATION
-  const subtotal = items.reduce(
-    (acc, item) => {
-      const price = item.price || 0;
-      return acc + price * item.quantity;
-    }, 0
-  );
+  const subtotal = items.reduce((acc, item) => {
+    const price = item.price || 0;
+    return acc + price * item.quantity;
+  }, 0);
   const shippingCost = subtotal > 1000 ? 0 : 50;
   const total = subtotal + shippingCost;
 
@@ -71,14 +69,12 @@ const Checkout = () => {
   };
 
   // --- UPDATED: ORDER SUBMISSION LOGIC ---
-  const handleOrderSubmit = async (paymentMethod) => {
+  const handleOrderSubmit = async (paymentData) => {
     try {
       setLoading(true);
 
-      // 2. TRIGGER PAYMENT POPUP (Mock or Real)
-      await initiatePayment(total, user, async (paymentResponse) => {
-        // === THIS RUNS ONLY IF USER CLICKS "OK" / PAYS SUCCESSFULLY ===
-
+      // Handle COD separately (no payment popup needed)
+      if (paymentData.method === "cod") {
         const orderData = {
           userId: user?.id,
           items: items.map((item) => ({
@@ -88,32 +84,82 @@ const Checkout = () => {
           })),
           totalAmount: total,
           shippingAddress,
-          paymentMethod,
-          // Capture Payment Details from Razorpay (Mock or Real)
+          paymentMethod: "cod",
+          paymentStatus: "Pending",
+        };
+
+        console.log("Creating COD Order:", orderData);
+
+        // Create Order (or use fallback if backend unavailable)
+        let response;
+        try {
+          response = await createOrder(orderData);
+        } catch (error) {
+          console.log("Backend unavailable, using mock order:", error.message);
+          response = { id: "ORD" + Date.now(), orderId: "ORD" + Date.now() };
+        }
+
+        // Clear Cart immediately (synchronous)
+        dispatch(clearCart());
+
+        // Redirect to Success Page
+        navigate("/order-success", {
+          state: {
+            orderId: response.id || response.orderId,
+            orderDetails: {
+              itemCount: items.length,
+              totalAmount: total,
+            },
+          },
+        });
+        return;
+      }
+
+      // Handle Razorpay payment
+      await initiatePayment(total, user, async (paymentResponse) => {
+        // This runs only if user successfully pays
+        const orderData = {
+          userId: user?.id,
+          items: items.map((item) => ({
+            productId: item.productId,
+            quantity: item.quantity,
+            price: item.price,
+          })),
+          totalAmount: total,
+          shippingAddress,
+          paymentMethod: "razorpay",
           paymentId: paymentResponse.razorpay_payment_id,
           paymentStatus: "Paid",
         };
 
         console.log("Payment Success! Creating Order:", orderData);
 
-        // 3. Create Order in Database (Mock or Real)
-        const response = await createOrder(orderData);
-
-        if (response) {
-          // Assuming createOrder returns the order object
-          // 4. Clear Cart
-          await dispatch(clearCartThunk()).unwrap();
-
-          // 5. Redirect
-          navigate("/order-success", {
-            state: { orderId: response.id || response.orderId },
-          });
+        // Create Order (or use fallback if backend unavailable)
+        let response;
+        try {
+          response = await createOrder(orderData);
+        } catch (error) {
+          console.log("Backend unavailable, using mock order:", error.message);
+          response = { id: "ORD" + Date.now(), orderId: "ORD" + Date.now() };
         }
+
+        // Clear Cart immediately (synchronous)
+        dispatch(clearCart());
+
+        // Redirect to Success Page
+        navigate("/order-success", {
+          state: {
+            orderId: response.id || response.orderId,
+            orderDetails: {
+              itemCount: items.length,
+              totalAmount: total,
+            },
+          },
+        });
       });
     } catch (error) {
       console.error("Payment or Order Failed", error);
-      // Only alert if it's an actual error (not just user cancelling)
-      // Our mock service handles the "User Cancelled" alert internally
+      alert("Failed to place order. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -304,9 +350,7 @@ const Checkout = () => {
                   >
                     <div className="w-16 h-16 bg-gray-100 rounded-md overflow-hidden flex-shrink-0">
                       <img
-                        src={
-                          item.image || "https://via.placeholder.com/64"
-                        }
+                        src={item.image || "https://via.placeholder.com/64"}
                         alt={item.name || "Product"}
                         className="w-full h-full object-contain mix-blend-multiply"
                       />

@@ -29,6 +29,7 @@ const initialState = USE_MOCK_AUTH
         id: 1, // IMPORTANT: Ensure this ID exists in your backend database if connecting to real API
         name: "Test User",
         phone: "9999999999",
+        email: "test@example.com", // Added email field
       },
       token: "mock-debug-token",
       isAuthenticated: true,

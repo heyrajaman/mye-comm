@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { FaLaptop, FaMobileAlt, FaHeadphones, FaTshirt } from "react-icons/fa";
 
 const categories = [
@@ -8,6 +9,12 @@ const categories = [
 ];
 
 const FeaturedCategories = () => {
+  const navigate = useNavigate();
+
+  const handleCategoryClick = (categoryName) => {
+    navigate(`/shop?category=${categoryName}`);
+  };
+
   return (
     <div className="mb-12">
       <h2 className="text-2xl font-bold text-gray-800 mb-6">
@@ -17,6 +24,7 @@ const FeaturedCategories = () => {
         {categories.map((cat) => (
           <div
             key={cat.id}
+            onClick={() => handleCategoryClick(cat.name)}
             className="flex flex-col items-center justify-center p-6 bg-white border border-gray-100 rounded-xl shadow-sm hover:shadow-md hover:border-blue-200 cursor-pointer transition"
           >
             <div className="text-blue-500 mb-3">{cat.icon}</div>

@@ -25,10 +25,10 @@ export const initiatePayment = async (amount, user, onSuccess) => {
       };
 
       console.log("Payment Successful (Mock)!", mockResponse);
-      onSuccess(mockResponse); // <--- Triggers the "Place Order" logic
+      await onSuccess(mockResponse); // <--- Triggers the "Place Order" logic
     } else {
       // 4. Simulate Failure
-      alert("Payment Failed: User cancelled the transaction.");
+      throw new Error("Payment cancelled");
     }
   } else {
     // Real Backend/Razorpay Logic (We will add this later when you have a key)

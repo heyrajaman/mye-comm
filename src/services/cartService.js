@@ -35,8 +35,9 @@ export const removeFromCart = async (cartItemId) => {
 
 // --- CLEAR CART ---
 export const clearCartService = async (userId) => {
-  // WARNING: Your backend 'cart.routes.js' DOES NOT have a clear route.
-  // We return mock success here so the Frontend Redux store clears the UI.
-  // The Backend 'checkout' controller usually clears the DB cart automatically.
+  // Note: Backend doesn't have a /cart/clear route
+  // The backend should clear the cart in the order checkout controller
+  // This just returns success so Redux can clear the frontend state
+  console.log("Clearing cart in frontend for user:", userId);
   return { success: true };
 };

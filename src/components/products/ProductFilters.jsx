@@ -6,6 +6,7 @@ const categories = [
   "Electronics",
   "Fashion",
   "Mobiles",
+  "Accessories",
   "Home & Kitchen",
   "Books",
 ];

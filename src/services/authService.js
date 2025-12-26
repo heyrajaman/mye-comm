@@ -28,9 +28,11 @@ export const loginUser = async ({ phone, password }) => {
     headers: { Authorization: `Bearer ${token}` },
   });
 
+  console.log("Backend user profile data:", profileResponse.data);
+
   return {
     token,
-    user: profileResponse.data, // Contains id, name, role, etc.
+    user: profileResponse.data, // Contains id, name, role, email, etc.
   };
 };
 
@@ -50,12 +52,11 @@ export const updateUserProfile = async (userId, updatedData) => {
   return response.data;
 };
 
+// Ensure the keys are 'oldPassword' and 'newPassword' to match backend
 export const changePassword = async (userId, currentPassword, newPassword) => {
-  // Backend: POST /auth/change-password
-  // Your backend route expects: { currentPassword, newPassword } (and uses token for ID)
-  const response = await api.post("/auth/change-password", {
-    currentPassword,
-    newPassword,
+  const response = await api.post(`/auth/change-password`, {
+    oldPassword: currentPassword, // ✅ Key must be 'oldPassword'
+    newPassword: newPassword, // ✅ Key must be 'newPassword'
   });
   return response.data;
 };

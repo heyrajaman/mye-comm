@@ -1,14 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { useLocation } from "react-router-dom";
 import { getMyOrders } from "../services/orderService";
 import { updateUserProfile, changePassword } from "../services/authService";
-import {
-  getAddresses,
-  addAddress,
-  deleteAddress,
-} from "../services/addressService";
 import { logout, updateUser } from "../store/slices/authSlice";
-import AddressForm from "../components/checkout/AddressForm";
 import {
   FaUser,
   FaBoxOpen,
@@ -16,27 +11,28 @@ import {
   FaEdit,
   FaSave,
   FaTimes,
-  FaMapMarkerAlt,
-  FaTrash,
   FaLock,
   FaEye,
-  FaEyeSlash, // <--- New Imports
+  FaEyeSlash,
   FaCamera,
 } from "react-icons/fa";
-import OrderDetailModal from "../components/profile/OrderDetailModal"; // <--- 1. NEW IMPORT
+import OrderDetailModal from "../components/profile/OrderDetailModal";
 
 const Profile = () => {
   const dispatch = useDispatch();
+  const location = useLocation();
   const { user } = useSelector((state) => state.auth);
-  const fileInputRef = useRef(null); // <--- REF FOR FILE INPUT
+  const fileInputRef = useRef(null);
 
-  const [activeTab, setActiveTab] = useState("profile");
+  // Check if activeTab was passed from navigation (e.g., from OrderSuccess page)
+  const [activeTab, setActiveTab] = useState(
+    location.state?.activeTab || "profile"
+  );
 
   // --- STATES ---
   const [orders, setOrders] = useState([]);
   // --- NEW STATE FOR MODAL ---
-  const [selectedOrder, setSelectedOrder] = useState(null); // <--- 2. NEW STATE
-  const [addresses, setAddresses] = useState([]);
+  const [selectedOrder, setSelectedOrder] = useState(null);
   const [loading, setLoading] = useState(false);
 
   // Edit Profile States
@@ -50,8 +46,6 @@ const Profile = () => {
     phone: "",
     profilePic: "",
   });
-  // Add Address State
-  const [showAddressForm, setShowAddressForm] = useState(false);
 
   // Password State
   const [passwordData, setPasswordData] = useState({
@@ -82,28 +76,24 @@ const Profile = () => {
   // --- FETCHING DATA BASED ON TAB ---
   useEffect(() => {
     if (activeTab === "orders") fetchOrders();
-    if (activeTab === "addresses") fetchAddresses();
   }, [activeTab]);
+
+  // Also fetch orders when coming from OrderSuccess page
+  useEffect(() => {
+    if (location.state?.activeTab === "orders") {
+      fetchOrders();
+    }
+  }, [location.state]);
 
   const fetchOrders = async () => {
     setLoading(true);
     try {
       const data = await getMyOrders(user?.id);
+      console.log(`Fetched ${data.length} orders for user ${user?.id}`);
       setOrders(data);
     } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchAddresses = async () => {
-    setLoading(true);
-    try {
-      const data = await getAddresses(user?.id);
-      setAddresses(data);
-    } catch (error) {
-      console.error(error);
+      console.error("Failed to fetch orders:", error);
+      alert("Failed to load orders. Please check console for details.");
     } finally {
       setLoading(false);
     }
@@ -143,26 +133,6 @@ const Profile = () => {
   const handleInputChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
 
-  const handleAddNewAddress = async (newAddressData) => {
-    try {
-      await addAddress(user.id, newAddressData);
-      setShowAddressForm(false);
-      fetchAddresses();
-    } catch (error) {
-      alert("Failed to add address");
-    }
-  };
-
-  const handleDeleteAddress = async (id) => {
-    if (!window.confirm("Delete this address?")) return;
-    try {
-      await deleteAddress(id);
-      fetchAddresses();
-    } catch (error) {
-      alert("Failed to delete");
-    }
-  };
-
   // --- PASSWORD HANDLER WITH VALIDATION ---
   const handlePasswordChange = async (e) => {
     e.preventDefault();
@@ -196,7 +166,9 @@ const Profile = () => {
       setShowNew(false);
       setShowConfirm(false);
     } catch (error) {
-      setPasswordError(error.message || "Failed to update password");
+      const serverMessage =
+        error.response?.data?.message || "Failed to update password";
+      setPasswordError(serverMessage);
     } finally {
       setSaving(false);
     }
@@ -253,6 +225,9 @@ const Profile = () => {
 
               <h2 className="font-bold text-gray-800">{user?.name}</h2>
               <p className="text-sm text-gray-500">{user?.phone}</p>
+              {user?.email && (
+                <p className="text-sm text-gray-500">{user?.email}</p>
+              )}
             </div>
 
             <nav className="flex flex-col p-2">
@@ -265,16 +240,6 @@ const Profile = () => {
                 }`}
               >
                 <FaUser /> Profile Details
-              </button>
-              <button
-                onClick={() => setActiveTab("addresses")}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg text-left transition ${
-                  activeTab === "addresses"
-                    ? "bg-blue-50 text-blue-600 font-semibold"
-                    : "text-gray-600 hover:bg-gray-50"
-                }`}
-              >
-                <FaMapMarkerAlt /> Saved Addresses
               </button>
               <button
                 onClick={() => setActiveTab("orders")}
@@ -366,13 +331,21 @@ const Profile = () => {
                     Phone
                   </label>
                   {isEditing ? (
-                    <input
-                      type="tel"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleInputChange}
-                      className="w-full border p-2 rounded-lg"
-                    />
+                    <div className="relative">
+                      <input
+                        type="tel"
+                        name="phone"
+                        value={formData.phone}
+                        disabled={true} // <--- ✅ 1. DISABLES EDITING
+                        className="w-full border p-2 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed" // <--- ✅ 2. VISUAL CUE (Gray background)
+                        title="Phone number cannot be changed"
+                      />
+                      {/* Optional: Lock Icon to show it's read-only */}
+                      <FaLock
+                        className="absolute right-3 top-3 text-gray-400"
+                        size={12}
+                      />
+                    </div>
                   ) : (
                     <p className="text-gray-900 font-medium p-3 bg-gray-50 rounded-lg">
                       {user?.phone}
@@ -390,10 +363,11 @@ const Profile = () => {
                       value={formData.email}
                       onChange={handleInputChange}
                       className="w-full border p-2 rounded-lg"
+                      placeholder="Enter your email"
                     />
                   ) : (
                     <p className="text-gray-900 font-medium p-3 bg-gray-50 rounded-lg">
-                      {user?.email || "No email"}
+                      {user?.email || formData.email || "No email added"}
                     </p>
                   )}
                 </div>
@@ -401,76 +375,7 @@ const Profile = () => {
             </div>
           )}
 
-          {/* === TAB 2: SAVED ADDRESSES === */}
-          {activeTab === "addresses" && (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 animate-fadeIn">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-bold text-gray-800">
-                  Saved Addresses
-                </h2>
-                {!showAddressForm && (
-                  <button
-                    onClick={() => setShowAddressForm(true)}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition font-semibold text-sm"
-                  >
-                    + Add New Address
-                  </button>
-                )}
-              </div>
-
-              {showAddressForm ? (
-                <div className="bg-gray-50 p-6 rounded-xl border border-blue-100">
-                  <h3 className="text-lg font-bold mb-4">Add New Address</h3>
-                  <AddressForm
-                    onSubmit={handleAddNewAddress}
-                    buttonText="Save Address"
-                  />
-                  <button
-                    onClick={() => setShowAddressForm(false)}
-                    className="mt-4 text-red-500 hover:underline text-sm"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {loading ? (
-                    <p>Loading addresses...</p>
-                  ) : addresses.length === 0 ? (
-                    <p className="text-gray-500">No addresses saved yet.</p>
-                  ) : (
-                    addresses.map((addr) => (
-                      <div
-                        key={addr.id}
-                        className="border border-gray-200 rounded-xl p-4 hover:border-blue-300 transition relative group"
-                      >
-                        <button
-                          onClick={() => handleDeleteAddress(addr.id)}
-                          className="absolute top-4 right-4 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition"
-                        >
-                          <FaTrash />
-                        </button>
-                        <p className="font-bold text-gray-800 mb-1">
-                          {addr.fullName}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          {addr.addressLine1}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          {addr.city}, {addr.state} - {addr.zipCode}
-                        </p>
-                        <p className="text-sm text-gray-600 mt-2">
-                          📞 {addr.phone}
-                        </p>
-                      </div>
-                    ))
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* === TAB 3: ORDER HISTORY === */}
+          {/* === TAB 2: ORDER HISTORY === */}
           {activeTab === "orders" && (
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 animate-fadeIn">
               <h2 className="text-xl font-bold mb-6 text-gray-800">

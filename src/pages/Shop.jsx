@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useSearchParams } from "react-router-dom";
 import { getAllProducts } from "../store/thunks/productThunks";
 import { setFilters } from "../store/slices/filterSlice"; // Updated Import
 import ProductFilters from "../components/products/ProductFilters";
@@ -9,8 +10,17 @@ import { dummyProducts } from "../data/dummyData";
 
 const Shop = () => {
   const dispatch = useDispatch();
+  const [searchParams] = useSearchParams();
   const { items, loading } = useSelector((state) => state.products);
   const filters = useSelector((state) => state.filters);
+
+  // Set initial filter from URL parameter
+  useEffect(() => {
+    const categoryFromURL = searchParams.get("category");
+    if (categoryFromURL) {
+      dispatch(setFilters({ category: categoryFromURL }));
+    }
+  }, [searchParams, dispatch]);
 
   // Fetch products whenever filters change
   useEffect(() => {

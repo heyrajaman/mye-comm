@@ -8,7 +8,9 @@ export const createOrder = async (orderData) => {
   if (USE_MOCK) return { success: true, id: "mock-id" };
 
   // Backend Route: POST /orders/checkout
+  console.log("Sending order to backend:", orderData);
   const response = await api.post("/orders/checkout", orderData);
+  console.log("Order created, backend response:", response.data);
   return response.data;
 };
 
@@ -18,8 +20,17 @@ export const getMyOrders = async (userId) => {
 
   // Backend Route: GET /orders (The controller uses req.user.id from token)
   // Note: Your backend route is explicitly router.get("/", ...), so we request "/orders"
-  const response = await api.get("/orders");
-  return response.data;
+  try {
+    const response = await api.get("/orders");
+    console.log("Fetched orders from backend:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error(
+      "Error fetching orders:",
+      error.response?.data || error.message
+    );
+    throw error;
+  }
 };
 
 // 3. GET ALL ORDERS (Admin)
