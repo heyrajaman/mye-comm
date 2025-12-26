@@ -1,22 +1,33 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { addProduct } from "../../services/productService";
+// FIX 1: Import 'createProduct' (New Name)
+import { createProduct } from "../../services/productService";
 import { FaArrowLeft, FaSave } from "react-icons/fa";
 
 const AdminAddProduct = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+
+  // FIX 2: State updated to match Backend Schema
   const [formData, setFormData] = useState({
     name: "",
     price: "",
-    category: "",
+    categoryId: "", // Backend expects ID (e.g., 1)
     description: "",
-    imageUrl: "", // We will paste a URL for now
     stock: 10,
   });
 
+  // FIX 3: Separate state for File Upload
+  const [imageFile, setImageFile] = useState(null);
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setImageFile(e.target.files[0]);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -24,23 +35,32 @@ const AdminAddProduct = () => {
     setLoading(true);
     try {
       // Basic validation
-      if (!formData.name || !formData.price || !formData.category) {
-        alert("Please fill in required fields");
+      if (!formData.name || !formData.price || !formData.categoryId) {
+        alert("Please fill in required fields (Name, Price, Category ID)");
         setLoading(false);
         return;
       }
 
-      await addProduct({
-        ...formData,
-        price: parseFloat(formData.price), // Ensure price is a number
-        stock: parseInt(formData.stock),
-      });
+      // FIX 4: Use FormData to send File + Text to Backend
+      const submissionData = new FormData();
+      submissionData.append("name", formData.name);
+      submissionData.append("price", formData.price);
+      submissionData.append("categoryId", formData.categoryId);
+      submissionData.append("description", formData.description);
+      submissionData.append("stock", formData.stock);
+
+      if (imageFile) {
+        submissionData.append("image", imageFile); // Matches backend: upload.single("image")
+      }
+
+      // Call the service (using the new name)
+      await createProduct(submissionData);
 
       alert("Product Added Successfully!");
-      navigate("/admin/products"); // Go back to table
+      navigate("/admin/products");
     } catch (error) {
       console.error(error);
-      alert("Failed to add product");
+      alert("Failed to add product. Ensure Category ID exists in DB.");
     } finally {
       setLoading(false);
     }
@@ -113,42 +133,36 @@ const AdminAddProduct = () => {
           </div>
         </div>
 
-        {/* Category */}
+        {/* Category ID */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Category *
-          </label>
-          <select
-            name="category"
-            value={formData.category}
-            onChange={handleChange}
-            required
-            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
-          >
-            <option value="">Select Category</option>
-            <option value="Electronics">Electronics</option>
-            <option value="Fashion">Fashion</option>
-            <option value="Home">Home</option>
-            <option value="Books">Books</option>
-          </select>
-        </div>
-
-        {/* Image URL */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Image URL
+            Category ID *
           </label>
           <input
-            type="url"
-            name="imageUrl"
-            value={formData.imageUrl}
+            type="number"
+            name="categoryId"
+            value={formData.categoryId}
             onChange={handleChange}
+            required
+            placeholder="Enter Category ID (e.g., 1)"
             className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
-            placeholder="https://example.com/image.jpg"
           />
           <p className="text-xs text-gray-500 mt-1">
-            Paste a link to an image (e.g., from Unsplash or Google Images)
+            Please enter the ID of an existing category in your database.
           </p>
+        </div>
+
+        {/* Image Upload */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Product Image
+          </label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+          />
         </div>
 
         {/* Description */}

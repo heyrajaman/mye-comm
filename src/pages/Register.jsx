@@ -10,6 +10,10 @@ import { registerUser } from "../services/authService";
 const schema = yup
   .object({
     name: yup.string().required("Full name is required"),
+    email: yup // <--- ADD THIS
+      .string()
+      .email("Invalid email format")
+      .required("Email is required"),
     phone: yup
       .string()
       .matches(/^[0-9]{10}$/, "Phone number must be 10 digits")
@@ -77,6 +81,20 @@ const Register = () => {
             className="mt-1 block w-full border border-gray-300 rounded-md p-2"
           />
           <p className="text-red-500 text-xs mt-1">{errors.name?.message}</p>
+        </div>
+
+        {/* === ADD EMAIL FIELD HERE === */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700">
+            Email Address
+          </label>
+          <input
+            {...register("email")}
+            type="email"
+            placeholder="john@example.com"
+            className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+          />
+          <p className="text-red-500 text-xs mt-1">{errors.email?.message}</p>
         </div>
 
         {/* Phone */}

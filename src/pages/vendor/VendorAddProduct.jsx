@@ -1,138 +1,174 @@
-import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { FaCloudUploadAlt } from "react-icons/fa";
+import { createProductThunk } from "../../store/thunks/productThunks";
+import * as yup from "yup";
+import { yupResolver } from "@hookform/resolvers/yup";
+
+// Schema Validation
+const schema = yup
+  .object({
+    name: yup.string().required("Product Name is required"),
+    price: yup
+      .number()
+      .typeError("Price must be a number")
+      .required("Price is required"),
+    description: yup.string().required("Description is required"),
+    stock: yup
+      .number()
+      .typeError("Stock must be a number")
+      .required("Stock is required"),
+    categoryId: yup
+      .number()
+      .typeError("Category ID must be a number")
+      .required("Category ID is required"),
+    // Image validation (check if file list has length)
+    image: yup
+      .mixed()
+      .test("required", "Product image is required", (value) => {
+        return value && value.length > 0;
+      }),
+  })
+  .required();
 
 const VendorAddProduct = () => {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    name: "",
-    price: "",
-    category: "Electronics",
-    description: "",
-    imageUrl: "",
-    stock: 10,
+  const { loading, error } = useSelector((state) => state.products);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: yupResolver(schema),
   });
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  const onSubmit = async (data) => {
+    // 1. Create FormData object for file upload
+    const formData = new FormData();
+    formData.append("name", data.name);
+    formData.append("price", data.price);
+    formData.append("description", data.description);
+    formData.append("stock", data.stock);
+    formData.append("categoryId", data.categoryId);
+    // Append the file (data.image is a FileList)
+    formData.append("image", data.image[0]);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+    // 2. Dispatch
+    const resultAction = await dispatch(createProductThunk(formData));
 
-    // MOCK LOGIC: In real app, we send API request
-    console.log("Vendor submitting product:", formData);
-
-    alert("Product submitted successfully! It is now pending Admin Approval.");
-    navigate("/vendor/products");
+    if (createProductThunk.fulfilled.match(resultAction)) {
+      navigate("/vendor/products");
+    }
   };
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">Add New Product</h2>
+    <div className="max-w-2xl mx-auto bg-white p-8 rounded-xl shadow-sm border border-gray-200">
+      <h2 className="text-2xl font-bold mb-6 text-gray-800">Add New Product</h2>
 
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Name */}
+      {error && (
+        <div className="mb-4 p-3 bg-red-100 text-red-700 rounded text-sm">
+          {error}
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        {/* Product Name */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Product Name
+          </label>
+          <input
+            {...register("name")}
+            className="w-full border border-gray-300 rounded-lg p-2.5"
+            placeholder="e.g. Wireless Headphones"
+          />
+          <p className="text-red-500 text-xs mt-1">{errors.name?.message}</p>
+        </div>
+
+        {/* Price & Stock */}
+        <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Product Name
+              Price (₹)
             </label>
             <input
-              type="text"
-              name="name"
-              required
-              onChange={handleChange}
-              className="w-full border p-2 rounded-lg"
-              placeholder="e.g. Wireless Headphones"
+              {...register("price")}
+              type="number"
+              className="w-full border border-gray-300 rounded-lg p-2.5"
             />
+            <p className="text-red-500 text-xs mt-1">{errors.price?.message}</p>
           </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            {/* Price */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Price (₹)
-              </label>
-              <input
-                type="number"
-                name="price"
-                required
-                onChange={handleChange}
-                className="w-full border p-2 rounded-lg"
-                placeholder="999"
-              />
-            </div>
-            {/* Stock */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Stock Quantity
-              </label>
-              <input
-                type="number"
-                name="stock"
-                required
-                onChange={handleChange}
-                className="w-full border p-2 rounded-lg"
-                defaultValue="10"
-              />
-            </div>
-          </div>
-
-          {/* Category */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Category
-            </label>
-            <select
-              name="category"
-              onChange={handleChange}
-              className="w-full border p-2 rounded-lg bg-white"
-            >
-              <option>Electronics</option>
-              <option>Fashion</option>
-              <option>Home & Kitchen</option>
-              <option>Books</option>
-            </select>
-          </div>
-
-          {/* Image URL */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Image URL
+              Stock Quantity
             </label>
             <input
-              type="url"
-              name="imageUrl"
-              required
-              onChange={handleChange}
-              className="w-full border p-2 rounded-lg"
-              placeholder="https://..."
+              {...register("stock")}
+              type="number"
+              className="w-full border border-gray-300 rounded-lg p-2.5"
             />
+            <p className="text-red-500 text-xs mt-1">{errors.stock?.message}</p>
           </div>
+        </div>
 
-          {/* Description */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Description
-            </label>
-            <textarea
-              name="description"
-              rows="3"
-              required
-              onChange={handleChange}
-              className="w-full border p-2 rounded-lg"
-            ></textarea>
-          </div>
+        {/* Category ID */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Category ID
+          </label>
+          <input
+            {...register("categoryId")}
+            type="number"
+            className="w-full border border-gray-300 rounded-lg p-2.5"
+            placeholder="Enter 1, 2, or 3..."
+          />
+          <p className="text-gray-400 text-xs mt-1">
+            Make sure this Category ID exists in your database.
+          </p>
+          <p className="text-red-500 text-xs mt-1">
+            {errors.categoryId?.message}
+          </p>
+        </div>
 
-          <button
-            type="submit"
-            className="w-full bg-purple-600 text-white font-bold py-3 rounded-lg hover:bg-purple-700 transition flex items-center justify-center gap-2"
-          >
-            <FaCloudUploadAlt /> Submit for Approval
-          </button>
-        </form>
-      </div>
+        {/* Description */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Description
+          </label>
+          <textarea
+            {...register("description")}
+            rows="4"
+            className="w-full border border-gray-300 rounded-lg p-2.5"
+          ></textarea>
+          <p className="text-red-500 text-xs mt-1">
+            {errors.description?.message}
+          </p>
+        </div>
+
+        {/* Image Upload */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Product Image
+          </label>
+          <input
+            {...register("image")}
+            type="file"
+            accept="image/*"
+            className="w-full border border-gray-300 rounded-lg p-2"
+          />
+          <p className="text-red-500 text-xs mt-1">{errors.image?.message}</p>
+        </div>
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+        >
+          {loading ? "Creating Product..." : "Create Product"}
+        </button>
+      </form>
     </div>
   );
 };

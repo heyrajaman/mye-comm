@@ -1,107 +1,70 @@
 import api from "./api";
-import { dummyProducts } from "../data/dummyData"; // Ensure this path is correct
 
-const USE_MOCK = true; // <--- SWITCH THIS TO FALSE WHEN BACKEND IS READY
-const STORAGE_KEY = "mock_product_db";
+// ==========================================
+// CONFIGURATION: REAL BACKEND CONNECTION
+// ==========================================
+const USE_MOCK = false;
 
-// --- HELPER: Get Data from Local Storage ---
-const getLocalProducts = () => {
-  const stored = localStorage.getItem(STORAGE_KEY);
-  if (!stored) {
-    // First time load: Copy dummyData to localStorage so we have something to edit
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(dummyProducts));
-    return dummyProducts;
-  }
-  return JSON.parse(stored);
-};
+// --- PUBLIC ROUTES ---
 
-// 1. FETCH ALL PRODUCTS (Used by Shop & Admin)
-export const fetchProducts = async (params = {}) => {
-  if (USE_MOCK) {
-    await new Promise((resolve) => setTimeout(resolve, 500)); // Simulate delay
-    let products = getLocalProducts();
+// 1. Get All Products (Matches: GET /api/products)
+// Supports query params: ?category=Electronics&sort=asc
+export const getProducts = async (params = {}) => {
+  if (USE_MOCK) return [];
 
-    // Optional: Basic Mock Filtering (e.g. ?category=Electronics)
-    if (params.category) {
-      products = products.filter((p) => p.category === params.category);
-    }
-    if (params.featured) {
-      products = products.filter((p) => p.featured === true); // Assuming you have a featured flag
-    }
-
-    return products;
-  }
-
-  // Real Backend Call
+  // The backend controller accepts 'category' and 'sort' in req.query
   const response = await api.get("/products", { params });
   return response.data;
 };
 
-// 2. FETCH PRODUCT BY ID (Used by Product Details)
-export const fetchProductById = async (id) => {
-  if (USE_MOCK) {
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    const products = getLocalProducts();
-    // Note: We use == because URL params are strings, but ID might be number
-    return products.find((p) => p.id == id);
-  }
+// 2. Get Single Product (Matches: GET /api/products/:id)
+export const getProductById = async (id) => {
+  if (USE_MOCK) return null;
 
-  // Real Backend Call
   const response = await api.get(`/products/${id}`);
   return response.data;
 };
 
-// 3. FETCH CATEGORIES
-export const fetchCategories = async () => {
-  if (USE_MOCK) {
-    const products = getLocalProducts();
-    // Extract unique categories
-    const categories = [...new Set(products.map((p) => p.category))];
-    return categories;
-  }
+// --- VENDOR & ADMIN ROUTES ---
 
-  // Real Backend Call
-  const response = await api.get("/products/categories");
+// 3. Create Product (Matches: POST /api/products)
+// IMPORTANT: 'productData' must be a FormData object because of file upload
+export const createProduct = async (productData) => {
+  const response = await api.post("/products", productData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
   return response.data;
 };
 
-// 4. DELETE PRODUCT (New - For Admin)
+// 4. Update Product (Matches: PUT /api/products/:id)
+export const updateProduct = async (id, productData) => {
+  const response = await api.put(`/products/${id}`, productData, {
+    headers: {
+      // If sending file, use multipart/form-data, otherwise json
+      "Content-Type":
+        productData instanceof FormData
+          ? "multipart/form-data"
+          : "application/json",
+    },
+  });
+  return response.data;
+};
+
+// 5. Delete Product (Matches: DELETE /api/products/:id)
 export const deleteProduct = async (id) => {
-  if (USE_MOCK) {
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    const currentProducts = getLocalProducts();
-    const updatedProducts = currentProducts.filter((p) => p.id !== id);
-
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedProducts));
-    return id;
-  }
-
-  // Real Backend Call
   const response = await api.delete(`/products/${id}`);
   return response.data;
 };
 
-// 5. ADD PRODUCT (New - For Admin)
-export const addProduct = async (productData) => {
-  if (USE_MOCK) {
-    await new Promise((resolve) => setTimeout(resolve, 800));
+// 6. Get Vendor's Own Products (Matches: GET /api/products/vendor/my-products)
+export const getVendorProducts = async () => {
+  if (USE_MOCK) return [];
 
-    const currentProducts = getLocalProducts();
-    const newProduct = {
-      ...productData,
-      id: Date.now(), // Generate a fake unique ID
-      reviews: [],
-    };
-
-    // Add to the TOP of the list
-    const updatedProducts = [newProduct, ...currentProducts];
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedProducts));
-
-    return newProduct;
-  }
-
-  // Real Backend Call
-  const response = await api.post("/products", productData);
+  const response = await api.get("/products/vendor/my-products");
   return response.data;
 };
+
+// Note: Your backend routes currently DO NOT have a specific endpoint for 'getCategories'.
+// If you need that, we might need to add it to the backend later.

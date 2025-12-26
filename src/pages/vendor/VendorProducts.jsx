@@ -1,115 +1,97 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
-import { FaPlus, FaEdit, FaTrash, FaEye } from "react-icons/fa";
-import { fetchProducts } from "../../services/productService";
+import { fetchVendorProducts } from "../../store/thunks/productThunks";
+import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
 
 const VendorProducts = () => {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  // Simulate "My" ID
-  const CURRENT_VENDOR_ID = "vendor_123";
+  const dispatch = useDispatch();
+  // Ensure your slice has a 'vendorProducts' array, or just use 'items' if you share state
+  // Assuming 'items' holds the list:
+  const { items, loading, error } = useSelector((state) => state.products);
 
   useEffect(() => {
-    fetchMyProducts();
-  }, []);
+    dispatch(fetchVendorProducts());
+  }, [dispatch]);
 
-  const fetchMyProducts = async () => {
-    const allProducts = await fetchProducts();
-
-    // FILTER: In a real app, the backend does this.
-    // Here, we simulate showing only products that "belong" to this vendor.
-    // For demo purposes, let's just show the first 3 products as "mine".
-    const myProducts = allProducts.slice(0, 3).map((p) => ({
-      ...p,
-      status: p.status || "Active", // Default to Active if not set
-    }));
-
-    setProducts(myProducts);
-    setLoading(false);
-  };
-
-  const handleDelete = (id) => {
-    if (window.confirm("Delete this product?")) {
-      setProducts(products.filter((p) => p.id !== id));
-    }
-  };
-
-  if (loading) return <div className="p-6">Loading inventory...</div>;
+  if (loading)
+    return <div className="text-center py-10">Loading your products...</div>;
+  if (error)
+    return <div className="text-center py-10 text-red-500">{error}</div>;
 
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">My Inventory</h2>
+        <h2 className="text-2xl font-bold text-gray-800">My Products</h2>
         <Link
           to="/vendor/products/new"
-          className="bg-purple-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-purple-700 transition"
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700"
         >
-          <FaPlus /> Add New Product
+          <FaPlus /> Add Product
         </Link>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-gray-50 text-gray-600 uppercase text-sm">
-              <th className="py-3 px-6">Product</th>
-              <th className="py-3 px-6">Price</th>
-              <th className="py-3 px-6">Category</th>
-              <th className="py-3 px-6">Status</th>
-              <th className="py-3 px-6 text-center">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="text-gray-600 text-sm">
-            {products.map((product) => (
-              <tr key={product.id} className="border-b hover:bg-gray-50">
-                <td className="py-3 px-6 flex items-center gap-3">
-                  <img
-                    src={product.imageUrl}
-                    alt={product.name}
-                    className="w-10 h-10 rounded object-cover border"
-                  />
-                  <span className="font-medium">{product.name}</span>
-                </td>
-                <td className="py-3 px-6 font-bold">₹{product.price}</td>
-                <td className="py-3 px-6">
-                  {typeof product.category === "object"
-                    ? product.category.name
-                    : product.category}
-                </td>
-                <td className="py-3 px-6">
-                  <span
-                    className={`px-2 py-1 rounded-full text-xs font-bold ${
-                      product.status === "Pending"
-                        ? "bg-yellow-100 text-yellow-700"
-                        : "bg-green-100 text-green-700"
-                    }`}
-                  >
-                    {product.status}
-                  </span>
-                </td>
-                <td className="py-3 px-6 text-center flex justify-center gap-3">
-                  <button className="text-blue-500 hover:text-blue-700">
-                    <FaEdit />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(product.id)}
-                    className="text-red-500 hover:text-red-700"
-                  >
-                    <FaTrash />
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
-        {products.length === 0 && (
-          <div className="p-8 text-center text-gray-500">
+      {items.length === 0 ? (
+        <div className="bg-white p-10 rounded-xl border border-gray-200 text-center">
+          <p className="text-gray-500 text-lg">
             You haven't added any products yet.
-          </div>
-        )}
-      </div>
+          </p>
+        </div>
+      ) : (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <table className="w-full text-left">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th className="p-4 font-semibold text-gray-600">Product</th>
+                <th className="p-4 font-semibold text-gray-600">Price</th>
+                <th className="p-4 font-semibold text-gray-600">Stock</th>
+                <th className="p-4 font-semibold text-gray-600">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {items.map((product) => (
+                <tr key={product.id} className="hover:bg-gray-50">
+                  <td className="p-4 flex items-center gap-3">
+                    <div className="w-12 h-12 bg-gray-100 rounded md overflow-hidden">
+                      {/* Use 'imageUrl' from backend */}
+                      <img
+                        src={
+                          product.imageUrl || "https://via.placeholder.com/150"
+                        }
+                        alt={product.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <span className="font-medium text-gray-800">
+                      {product.name}
+                    </span>
+                  </td>
+                  <td className="p-4">₹{product.price}</td>
+                  <td className="p-4">
+                    <span
+                      className={
+                        product.stock > 0 ? "text-green-600" : "text-red-600"
+                      }
+                    >
+                      {product.stock}
+                    </span>
+                  </td>
+                  <td className="p-4">
+                    <div className="flex gap-3">
+                      <button className="text-blue-600 hover:text-blue-800">
+                        <FaEdit />
+                      </button>
+                      <button className="text-red-500 hover:text-red-700">
+                        <FaTrash />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 };

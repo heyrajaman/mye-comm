@@ -16,7 +16,7 @@ import AdminLayout from "./components/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminRoute from "./components/auth/AdminRoute";
 import AdminProducts from "./pages/admin/AdminProducts";
-import AdminAddProduct from "./components/admin/AdminAddProduct";
+import AdminAddProduct from "./pages/admin/AdminAddProduct";
 import AdminOrders from "./pages/admin/AdminOrders";
 import AdminUsers from "./pages/admin/AdminUsers";
 import VendorRegister from "./pages/vendor/VendorRegister";
